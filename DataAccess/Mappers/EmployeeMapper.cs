@@ -10,29 +10,35 @@ public static class XpoEmployeeMapper
     public static XpoEmployee ToXpo(Employee domain, UnitOfWork uow)
     {
         // Carica o crea l'oggetto XPO
-        var xpo = uow.GetObjectByKey<XpoEmployee>(domain.Id) 
+        var xpo = uow.GetObjectByKey<XpoEmployee>(domain.Id)
                   ?? new XpoEmployee(uow)
                   {
                       Id = domain.Id
                   };
 
         // Primitive fields
-        xpo.Id         = domain.Id;
-        xpo.UserName   = domain.UserName;
+        xpo.Id = domain.Id;
+        xpo.UserName = domain.UserName;
 
         // Relations (caricate tramite ID)
-        xpo.User   = uow.GetObjectByKey<XpoUser>(domain.IdUser);
+        xpo.User = uow.GetObjectByKey<XpoUser>(domain.IdUser);
 
         return xpo;
     }
 
     public static Employee ToDomain(XpoEmployee xpo)
     {
-        return new Employee(
+        var domain = new Employee(
             id: xpo.Id,
             userName: xpo.UserName,
-            idUser: xpo.User?.Id ?? Guid.Empty
+            idUser: xpo.User.Id
         );
+
+        domain.User = xpo.User == null
+            ? null
+            : XpoUserMapper.ToDomain(xpo.User);
+
+        return domain;
     }
 
     public static EmployeeDto ToDto(Employee domain)
@@ -40,7 +46,8 @@ public static class XpoEmployeeMapper
         return new EmployeeDto
         {
             Id = domain.Id,
-            UserName = domain.UserName
+            UserName = domain.UserName,
+            Email = domain.User.Email,
         };
     }
 }

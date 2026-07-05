@@ -28,7 +28,7 @@ public class XpoEmployee : XPBaseObject
     // Navigation Properties
     // -----------------------------
 
-    [Association("Employee-User")]
+    [Association("User-Employees")]
     public XpoUser User
     {
         get => user;

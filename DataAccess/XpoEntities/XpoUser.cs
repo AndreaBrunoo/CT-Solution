@@ -45,15 +45,7 @@ public class XpoUser : XPBaseObject
         set => SetPropertyValue(nameof(Role), ref role, value);
     }
 
-    // -----------------------------
-    // Navigation Properties
-    // -----------------------------
-
-    [Association("Employee-User")]
-    public XpoEmployee Employee
-    {
-        get => employee;
-        set => SetPropertyValue(nameof(Employee), ref employee, value);
-    }
-    private XpoEmployee employee;
+    [Association("User-Employees")]
+    public XPCollection<XpoEmployee> Employees
+    => GetCollection<XpoEmployee>(nameof(Employees));
 }
