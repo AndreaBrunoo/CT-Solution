@@ -31,8 +31,8 @@ public class XpoWorkLog : XPBaseObject
         set => SetPropertyValue(nameof(HoursCounter), ref hoursCounter, value);
     }
 
-    private DateTime date;
-    public DateTime Date
+    private DateOnly date;
+    public DateOnly Date
     {
         get => date;
         set => SetPropertyValue(nameof(Date), ref date, value);

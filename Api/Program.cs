@@ -31,6 +31,7 @@ builder.Services.AddScoped<UnitOfWork>(sp =>
 // ------------------------------------------------------------
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWorkLogService, WorkLogService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<JwtService>();
 

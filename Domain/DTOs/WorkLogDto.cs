@@ -7,7 +7,7 @@ public class WorkLogDto
     public Guid Id { get; set; }
     public string Description { get; set; } = string.Empty;
     public int HoursCounter { get; set; }
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public Guid IdProject { get; set; }
@@ -30,7 +30,7 @@ public class CreateWorkLogDto
     public int HoursCounter { get; set; }
 
     [Required]
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
     [Required]
     public Guid IdProject { get; set; }
@@ -57,7 +57,7 @@ public class UpdateWorkLogDto
     public int HoursCounter { get; set; }
 
     [Required]
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
     [Required]
     public Guid IdProject { get; set; }
@@ -66,7 +66,7 @@ public class UpdateWorkLogDto
     public Guid IdEmployee { get; set; }
 
     [Required]
-    public Guid IdType { get; set; }
+    public Guid IdCategory { get; set; }
 
     [Required]
     public Guid IdStatus { get; set; }

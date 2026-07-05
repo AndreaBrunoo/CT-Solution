@@ -6,7 +6,7 @@ public class WorkLog
         Guid id,
         string description,
         int hoursCounter,
-        DateTime date,
+        DateOnly date,
         DateTime createdAt,
         DateTime updatedAt,
         Guid idProject,
@@ -29,7 +29,7 @@ public class WorkLog
     public Guid Id { get; set; }
     public string Description { get; set; } = string.Empty;
     public int HoursCounter { get; set; }
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
