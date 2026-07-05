@@ -60,7 +60,7 @@ public class WorkLogService : IWorkLogService
                     cancellationToken);
 
             if (existing != null)
-                throw new Exception("WorkLog already registered");
+                throw new Exception("WorkLog already exists");
 
             // Domain
             var domain = new WorkLog(

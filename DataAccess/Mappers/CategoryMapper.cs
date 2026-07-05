@@ -1,5 +1,6 @@
 using DevExpress.Xpo;
 using Sln.Domain.Entities;
+using Sln.Domain.DTOs;
 using Sln.DataAccess.XpoEntities;
 
 namespace Sln.DataAccess.Mappers;
@@ -28,5 +29,14 @@ public static class XpoCategoryMapper
             id: xpo.Id,
             name: xpo.Name
         );
+    }
+
+    public static CategoryDto ToDto(Category domain)
+    {
+        return new CategoryDto
+        {
+            Id = domain.Id,
+            Name = domain.Name
+        };
     }
 }

@@ -1,5 +1,6 @@
 using DevExpress.Xpo;
 using Sln.Domain.Entities;
+using Sln.Domain.DTOs;
 using Sln.DataAccess.XpoEntities;
 
 namespace Sln.DataAccess.Mappers;
@@ -32,5 +33,14 @@ public static class XpoEmployeeMapper
             userName: xpo.UserName,
             idUser: xpo.User?.Id ?? Guid.Empty
         );
+    }
+
+    public static EmployeeDto ToDto(Employee domain)
+    {
+        return new EmployeeDto
+        {
+            Id = domain.Id,
+            UserName = domain.UserName
+        };
     }
 }

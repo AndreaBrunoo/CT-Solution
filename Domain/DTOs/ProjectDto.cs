@@ -17,11 +17,11 @@ public class CreateProjectDto
     [StringLength(200)]
     public string Name { get; set; } = string.Empty;
 
+    [Range(0, double.MaxValue)]
+    public decimal HourlyRate { get; set; }
+
     [Required]
     public Guid IdCompany { get; set; }
-
-    [Range(0, double.MaxValue)]
-    public decimal? HourlyRate { get; set; }
 }
 
 public class UpdateProjectDto
@@ -32,9 +32,9 @@ public class UpdateProjectDto
     [StringLength(200)]
     public string Name { get; set; } = string.Empty;
 
+    [Range(0, double.MaxValue)]
+    public decimal HourlyRate { get; set; }
+
     [Required]
     public Guid IdCompany { get; set; }
-
-    [Range(0, double.MaxValue)]
-    public decimal? HourlyRate { get; set; }
 }

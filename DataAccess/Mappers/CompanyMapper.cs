@@ -1,6 +1,7 @@
 using DevExpress.Xpo;
 using Sln.Domain.Entities;
 using Sln.DataAccess.XpoEntities;
+using Sln.Domain.DTOs;
 
 namespace Sln.DataAccess.Mappers;
 
@@ -32,5 +33,16 @@ public static class XpoCompanyMapper
             email: xpo.Email,
             hourlyRate: xpo.HourlyRate
         );
+    }
+
+    public static CompanyDto ToDto(Company domain)
+    {
+        return new CompanyDto
+        {
+            Id = domain.Id,
+            Name = domain.Name,
+            Email = domain.Email,
+            HourlyRate = domain.HourlyRate
+        };
     }
 }

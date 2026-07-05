@@ -36,4 +36,13 @@ public static class XpoUserMapper
             role: xpo.Role
         );
     }
+        public static UserDto ToDto(User domain)
+    {
+        return new UserDto
+        {
+            Id = domain.Id,
+            Email = domain.Email,
+            Role = domain.Role
+        };
+    }
 }

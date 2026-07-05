@@ -69,12 +69,7 @@ public class UserService : IUserService
 
             var domain = XpoUserMapper.ToDomain(xpo);
 
-            return new UserDto
-            {
-                Id = domain.Id,
-                Email = domain.Email,
-                Role = domain.Role
-            };
+            return XpoUserMapper.ToDto(domain);
         });
     }
 
@@ -89,12 +84,7 @@ public class UserService : IUserService
 
             var domain = XpoUserMapper.ToDomain(xpo);
 
-            return new UserDto
-            {
-                Id = domain.Id,
-                Email = domain.Email,
-                Role = domain.Role
-            };
+            return XpoUserMapper.ToDto(domain);
         });
     }
 }
