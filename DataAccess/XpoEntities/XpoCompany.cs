@@ -31,13 +31,6 @@ public class XpoCompany : XPBaseObject
         set => SetPropertyValue(nameof(Email), ref email, value);
     }
 
-    private decimal hourlyRate;
-    public decimal HourlyRate
-    {
-        get => hourlyRate;
-        set => SetPropertyValue(nameof(HourlyRate), ref hourlyRate, value);
-    }
-
     // -----------------------------
     // Relations
     // -----------------------------

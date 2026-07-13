@@ -7,7 +7,6 @@ public class CompanyDto
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public decimal HourlyRate { get; set; }
 }
 
 public class CreateCompanyDto
@@ -19,9 +18,6 @@ public class CreateCompanyDto
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
-
-    [Range(0, double.MaxValue)]
-    public decimal HourlyRate { get; set; }
 }
 
 public class UpdateCompanyDto
@@ -35,7 +31,4 @@ public class UpdateCompanyDto
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
-
-    [Range(0, double.MaxValue)]
-    public decimal HourlyRate { get; set; }
 }

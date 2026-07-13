@@ -20,7 +20,6 @@ public static class XpoCompanyMapper
         xpo.Id            = domain.Id;
         xpo.Name          = domain.Name;
         xpo.Email         = domain.Email;
-        xpo.HourlyRate    = domain.HourlyRate;
 
         return xpo;
     }
@@ -30,8 +29,7 @@ public static class XpoCompanyMapper
         return new Company(
             id: xpo.Id,
             name: xpo.Name,
-            email: xpo.Email,
-            hourlyRate: xpo.HourlyRate
+            email: xpo.Email
         );
     }
 
@@ -41,8 +39,7 @@ public static class XpoCompanyMapper
         {
             Id = domain.Id,
             Name = domain.Name,
-            Email = domain.Email,
-            HourlyRate = domain.HourlyRate
+            Email = domain.Email
         };
     }
 }

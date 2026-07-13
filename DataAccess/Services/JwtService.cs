@@ -22,8 +22,7 @@ public class JwtService
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Email, user.Email)
         };
 
         var token = new JwtSecurityToken(

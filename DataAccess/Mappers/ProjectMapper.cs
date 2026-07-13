@@ -37,7 +37,7 @@ public static class XpoProjectMapper
         );
 
         domain.Company = xpo.Company != null
-            ? new Company(xpo.Company.Id, xpo.Company.Name, xpo.Company.Email, xpo.Company.HourlyRate)
+            ? new Company(xpo.Company.Id, xpo.Company.Name, xpo.Company.Email)
             : null;
 
         return domain;

@@ -37,6 +37,9 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<JwtService>();
 

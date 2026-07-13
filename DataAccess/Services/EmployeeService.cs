@@ -36,7 +36,6 @@ public class EmployeeService : IEmployeeService
         {
             var list = await uow.Query<XpoEmployee>().ToListAsync(cancellationToken);
 
-            if (list == null) return null;
             return list
             .Select(xpo =>
             {
@@ -62,17 +61,13 @@ public class EmployeeService : IEmployeeService
             if (existing != null)
                 throw new Exception("Employee already exists");
 
-            // Domain
             var domain = new Employee(
                 id: Guid.NewGuid(),
                 userName: dto.UserName,
                 idUser: dto.IdUser
             );
-
-            // XPO
             var xpo = XpoEmployeeMapper.ToXpo(domain, uow);
 
-            // DTO
             return XpoEmployeeMapper.ToDto(domain);
         });
     }
@@ -86,16 +81,13 @@ public class EmployeeService : IEmployeeService
             if (xpo == null)
                 throw new Exception("Employee not found");
 
-            // 2. Converto XPO → Domain
             var domain = XpoEmployeeMapper.ToDomain(xpo);
 
             // 3. Aggiorno il Domain con i valori del DTO
             domain.UserName = dto.UserName;
 
-            // 4. Aggiorno l’XPO tramite il mapper
             XpoEmployeeMapper.ToXpo(domain, uow);
 
-            // 5. Restituisco il DTO di output
             return XpoEmployeeMapper.ToDto(domain);
         });
     }

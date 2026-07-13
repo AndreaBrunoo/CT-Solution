@@ -21,7 +21,7 @@ public class UserService : IUserService
         _jwtService = jwtService;
     }
 
-    public async Task RegisterAsync(string email, string password, string role)
+    public async Task RegisterAsync(string email, string password)
     {
         await _ctx.DoTranAsync(async uow =>
         {
@@ -33,7 +33,7 @@ public class UserService : IUserService
 
             var (hash, salt) = _passwordService.HashPassword(password);
 
-            var domain = new User(Guid.NewGuid(), email, hash, salt, role);
+            var domain = new User(Guid.NewGuid(), email, hash, salt);
 
             XpoUserMapper.ToXpo(domain, uow);
 
@@ -60,31 +60,115 @@ public class UserService : IUserService
         });
     }
 
-    public async Task<UserDto?> GetByIdAsync(Guid id)
+    public async Task<IReadOnlyList<UserDto>?> GetAllAsync(CancellationToken cancellationToken)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoUser>(id);
-            if (xpo == null) return null;
+            var list = await uow.Query<XpoUser>().ToListAsync(cancellationToken);
 
-            var domain = XpoUserMapper.ToDomain(xpo);
-
-            return XpoUserMapper.ToDto(domain);
+            return list
+            .Select(xpo =>
+            {
+                var domain = XpoUserMapper.ToDomain(xpo);
+                
+                return XpoUserMapper.ToDto(domain);
+            })
+            .ToList();
         });
     }
 
-    public async Task<UserDto?> GetByEmailAsync(string email)
+    public async Task<UserDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _ctx.DoAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoUser>(id, cancellationToken);
+
+            return xpo is null
+                ? null
+                : XpoUserMapper.ToDto(XpoUserMapper.ToDomain(xpo));
+        });
+    }
+
+    public async Task<UserDto?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.Query<XpoUser>()
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
-            if (xpo == null) return null;
+            return xpo is null
+                ? null
+                : XpoUserMapper.ToDto(XpoUserMapper.ToDomain(xpo));
+        });
+    }
 
-            var domain = XpoUserMapper.ToDomain(xpo);
+    // ---------------------------------------------------------
+    // ASSIGN ROLE
+    // ---------------------------------------------------------
+    public async Task AssignRoleAsync(Guid userId, Guid roleId, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct)
+                ?? throw new Exception("User not found.");
 
-            return XpoUserMapper.ToDto(domain);
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct)
+                ?? throw new Exception("Role not found.");
+
+            if (!user.Roles.Contains(role))
+                user.Roles.Add(role);
+
+            return true;
+        });
+    }
+
+    // ---------------------------------------------------------
+    // REMOVE ROLE
+    // ---------------------------------------------------------
+    public async Task RemoveRoleAsync(Guid userId, Guid roleId, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct)
+                ?? throw new Exception("User not found.");
+
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct)
+                ?? throw new Exception("Role not found.");
+
+            if (user.Roles.Contains(role))
+                user.Roles.Remove(role);
+
+            return true;
+        });
+    }
+
+    // ---------------------------------------------------------
+    // CHECK ROLE
+    // ---------------------------------------------------------
+    public async Task<bool> HasRoleAsync(Guid userId, string roleName, CancellationToken ct)
+    {
+        return await _ctx.DoAsync(async uow =>
+        {
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (user == null) return false;
+
+            return user.Roles.Any(r => r.Name == roleName);
+        });
+    }
+
+    // ---------------------------------------------------------
+    // CHECK PERMISSION
+    // ---------------------------------------------------------
+    public async Task<bool> HasPermissionAsync(Guid userId, string permissionCode, CancellationToken ct)
+    {
+        return await _ctx.DoAsync(async uow =>
+        {
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (user == null) return false;
+
+            return user.Roles
+                .SelectMany(r => r.Permissions)
+                .Any(p => p.Code == permissionCode);
         });
     }
 }

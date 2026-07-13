@@ -11,3 +11,16 @@ C:\Users\User\Documents\Project\Sln\Domain\obj\Debug\net10.0\Domain.dll
 C:\Users\User\Documents\Project\Sln\Domain\obj\Debug\net10.0\refint\Domain.dll
 C:\Users\User\Documents\Project\Sln\Domain\obj\Debug\net10.0\Domain.pdb
 C:\Users\User\Documents\Project\Sln\Domain\obj\Debug\net10.0\ref\Domain.dll
+C:\Users\StageOne\Documents\CT-Solution\Domain\bin\Debug\net10.0\Domain.deps.json
+C:\Users\StageOne\Documents\CT-Solution\Domain\bin\Debug\net10.0\Domain.dll
+C:\Users\StageOne\Documents\CT-Solution\Domain\bin\Debug\net10.0\Domain.pdb
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.csproj.AssemblyReference.cache
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.AssemblyInfoInputs.cache
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.AssemblyInfo.cs
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.csproj.CoreCompileInputs.cache
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.sourcelink.json
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.dll
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\refint\Domain.dll
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\Domain.pdb
+C:\Users\StageOne\Documents\CT-Solution\Domain\obj\Debug\net10.0\ref\Domain.dll

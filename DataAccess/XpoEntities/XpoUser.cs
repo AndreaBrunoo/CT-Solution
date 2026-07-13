@@ -38,14 +38,9 @@ public class XpoUser : XPBaseObject
         set => SetPropertyValue(nameof(PasswordSalt), ref passwordSalt, value);
     }
 
-    private string role = string.Empty;
-    public string Role
-    {
-        get => role;
-        set => SetPropertyValue(nameof(Role), ref role, value);
-    }
-
     [Association("User-Employees")]
-    public XPCollection<XpoEmployee> Employees
-    => GetCollection<XpoEmployee>(nameof(Employees));
+    public XPCollection<XpoEmployee> Employees => GetCollection<XpoEmployee>(nameof(Employees));
+
+    [Association("User-Roles")]
+    public XPCollection<XpoRole> Roles => GetCollection<XpoRole>(nameof(Roles));
 }

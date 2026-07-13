@@ -55,8 +55,7 @@ public class CompanyService : ICompanyService
             var existing = await uow.Query<XpoCompany>()
                 .FirstOrDefaultAsync(w =>
                     w.Name == dto.Name &&
-                    w.Email == dto.Email &&
-                    w.HourlyRate == dto.HourlyRate,
+                    w.Email == dto.Email,
                     cancellationToken);
 
             if (existing != null)
@@ -66,8 +65,7 @@ public class CompanyService : ICompanyService
             var domain = new Company(
                 id: Guid.NewGuid(),
                 name: dto.Name,
-                email: dto.Email,
-                hourlyRate: dto.HourlyRate
+                email: dto.Email
             );
 
             // XPO
@@ -93,7 +91,6 @@ public class CompanyService : ICompanyService
             // 3. Aggiorno il Domain con i valori del DTO
             domain.Name = dto.Name;
             domain.Email = dto.Email;
-            domain.HourlyRate = dto.HourlyRate;
 
             // 4. Aggiorno l’XPO tramite il mapper
             XpoCompanyMapper.ToXpo(domain, uow);

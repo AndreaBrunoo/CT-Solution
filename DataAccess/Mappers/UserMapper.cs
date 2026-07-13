@@ -21,7 +21,6 @@ public static class XpoUserMapper
         xpo.Email         = domain.Email;
         xpo.PasswordHash  = domain.PasswordHash;
         xpo.PasswordSalt  = domain.PasswordSalt;
-        xpo.Role          = domain.Role;
 
         return xpo;
     }
@@ -32,8 +31,7 @@ public static class XpoUserMapper
             id: xpo.Id,
             email: xpo.Email,
             passwordHash: xpo.PasswordHash,
-            passwordSalt: xpo.PasswordSalt,
-            role: xpo.Role
+            passwordSalt: xpo.PasswordSalt
         );
     }
         public static UserDto ToDto(User domain)
@@ -41,8 +39,7 @@ public static class XpoUserMapper
         return new UserDto
         {
             Id = domain.Id,
-            Email = domain.Email,
-            Role = domain.Role
+            Email = domain.Email
         };
     }
 }
