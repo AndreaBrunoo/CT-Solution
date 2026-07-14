@@ -11,6 +11,7 @@ public class XpoEmployee : XPBaseObject
     // -----------------------------
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     // -----------------------------
@@ -18,6 +19,8 @@ public class XpoEmployee : XPBaseObject
     // -----------------------------
 
     private string userName = string.Empty;
+
+    [Persistent]
     public string UserName
     {
         get => userName;
@@ -29,6 +32,7 @@ public class XpoEmployee : XPBaseObject
     // -----------------------------
 
     [Association("User-Employees")]
+    [Persistent]
     public XpoUser User
     {
         get => user;

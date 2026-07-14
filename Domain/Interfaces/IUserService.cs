@@ -1,10 +1,11 @@
 using Sln.Domain.DTOs;
 
 namespace Sln.Domain.Interfaces;
+
 public interface IUserService
 {
-    Task RegisterAsync(string email, string password);
-    Task<string> LoginAsync(string email, string password);
+    Task RegisterAsync(RegisterDto dto, CancellationToken ct);
+    Task<string> LoginAsync(LoginDto dto, CancellationToken ct);
     Task<UserDto?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct);
     Task<IReadOnlyList<UserDto>?> GetAllAsync(CancellationToken ct);

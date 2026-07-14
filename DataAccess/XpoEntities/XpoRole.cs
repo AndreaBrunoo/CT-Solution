@@ -7,9 +7,12 @@ public class XpoRole : XPBaseObject
     public XpoRole(Session session) : base(session) { }
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     private string name = string.Empty;
+    
+    [Persistent]
     public string Name
     {
         get => name;

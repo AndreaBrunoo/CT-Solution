@@ -11,6 +11,7 @@ public class XpoCompany : XPBaseObject
     // -----------------------------
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     // -----------------------------
@@ -18,6 +19,8 @@ public class XpoCompany : XPBaseObject
     // -----------------------------
 
     private string name = string.Empty;
+
+    [Persistent]
     public string Name
     {
         get => name;
@@ -25,6 +28,8 @@ public class XpoCompany : XPBaseObject
     }
 
     private string email = string.Empty;
+
+    [Persistent]
     public string Email
     {
         get => email;

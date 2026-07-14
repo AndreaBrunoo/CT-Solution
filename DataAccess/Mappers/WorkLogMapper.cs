@@ -18,6 +18,7 @@ public static class XpoWorkLogMapper
 
         // Primitive fields
         xpo.Id = domain.Id;
+        xpo.Name = domain.Name;
         xpo.Description = domain.Description;
         xpo.HoursCounter = domain.HoursCounter;
         xpo.Date = domain.Date;
@@ -37,6 +38,7 @@ public static class XpoWorkLogMapper
     {
         return new WorkLog(
             id: xpo.Id,
+            name: xpo.Name,
             description: xpo.Description,
             hoursCounter: xpo.HoursCounter,
             date: xpo.Date,
@@ -54,6 +56,7 @@ public static class XpoWorkLogMapper
         return new WorkLogDto
         {
             Id = domain.Id,
+            Name = domain.Name,
             Description = domain.Description,
             HoursCounter = domain.HoursCounter,
             Date = domain.Date,

@@ -11,6 +11,7 @@ public class XpoStatus : XPBaseObject
     // -----------------------------
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     // -----------------------------
@@ -18,6 +19,8 @@ public class XpoStatus : XPBaseObject
     // -----------------------------
 
     private string name = string.Empty;
+
+    [Persistent]
     public string Name
     {
         get => name;

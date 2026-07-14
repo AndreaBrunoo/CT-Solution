@@ -11,20 +11,33 @@ public class XpoWorkLog : XPBaseObject
     // -----------------------------
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     // -----------------------------
     // Primitive Fields
     // -----------------------------
+    private string name = string.Empty;
+
+    [Persistent]
+    public string Name
+    {
+        get => description;
+        set => SetPropertyValue(nameof(Name), ref name, value);
+    }
 
     private string description = string.Empty;
-    public string Description 
+
+    [Persistent]
+    public string Description
     {
         get => description;
         set => SetPropertyValue(nameof(Description), ref description, value);
     }
 
     private int hoursCounter;
+
+    [Persistent]
     public int HoursCounter
     {
         get => hoursCounter;
@@ -32,6 +45,8 @@ public class XpoWorkLog : XPBaseObject
     }
 
     private DateOnly date;
+
+    [Persistent]
     public DateOnly Date
     {
         get => date;
@@ -39,6 +54,8 @@ public class XpoWorkLog : XPBaseObject
     }
 
     private DateTime createdAt;
+
+    [Persistent]
     public DateTime CreatedAt
     {
         get => createdAt;
@@ -46,6 +63,8 @@ public class XpoWorkLog : XPBaseObject
     }
 
     private DateTime updatedAt;
+
+    [Persistent]
     public DateTime UpdatedAt
     {
         get => updatedAt;
@@ -57,6 +76,8 @@ public class XpoWorkLog : XPBaseObject
     // -----------------------------
 
     private Guid idProject;
+
+    [Persistent]
     public Guid IdProject
     {
         get => idProject;
@@ -64,6 +85,8 @@ public class XpoWorkLog : XPBaseObject
     }
 
     private Guid idEmployee;
+
+    [Persistent]
     public Guid IdEmployee
     {
         get => idEmployee;
@@ -71,6 +94,8 @@ public class XpoWorkLog : XPBaseObject
     }
 
     private Guid idCategory;
+
+    [Persistent]
     public Guid IdCategory
     {
         get => idCategory;
@@ -78,6 +103,8 @@ public class XpoWorkLog : XPBaseObject
     }
 
     private Guid idStatus;
+
+    [Persistent]
     public Guid IdStatus
     {
         get => idStatus;
@@ -89,6 +116,7 @@ public class XpoWorkLog : XPBaseObject
     // -----------------------------
 
     [Association("Project-WorkLogs")]
+    [Persistent]
     public XpoProject Project
     {
         get => project;
@@ -97,6 +125,7 @@ public class XpoWorkLog : XPBaseObject
     private XpoProject project;
 
     [Association("Employee-WorkLogs")]
+    [Persistent]
     public XpoEmployee Employee
     {
         get => employee;
@@ -105,6 +134,7 @@ public class XpoWorkLog : XPBaseObject
     private XpoEmployee employee;
 
     [Association("Category-WorkLogs")]
+    [Persistent]
     public XpoCategory Category
     {
         get => category;
@@ -113,6 +143,7 @@ public class XpoWorkLog : XPBaseObject
     private XpoCategory category;
 
     [Association("Status-WorkLogs")]
+    [Persistent]
     public XpoStatus Status
     {
         get => status;

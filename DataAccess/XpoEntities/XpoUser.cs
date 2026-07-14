@@ -11,6 +11,7 @@ public class XpoUser : XPBaseObject
     // -----------------------------
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     // -----------------------------
@@ -18,6 +19,8 @@ public class XpoUser : XPBaseObject
     // -----------------------------
 
     private string email = string.Empty;
+
+    [Persistent]
     public string Email
     {
         get => email;
@@ -25,6 +28,8 @@ public class XpoUser : XPBaseObject
     }
 
     private string passwordHash = string.Empty;
+
+    [Persistent]
     public string PasswordHash
     {
         get => passwordHash;
@@ -32,6 +37,8 @@ public class XpoUser : XPBaseObject
     }
 
     private string passwordSalt = string.Empty;
+
+    [Persistent]
     public string PasswordSalt
     {
         get => passwordSalt;

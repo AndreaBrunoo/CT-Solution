@@ -5,6 +5,7 @@ namespace Sln.Domain.DTOs;
 public class WorkLogDto
 {
     public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public int HoursCounter { get; set; }
     public DateOnly Date { get; set; }
@@ -22,6 +23,10 @@ public class WorkLogDto
 
 public class CreateWorkLogDto
 {
+    [Required]
+    [StringLength(1000)]
+    public string Name { get; set; } = string.Empty;
+
     [Required]
     [StringLength(1000)]
     public string Description { get; set; } = string.Empty;
@@ -48,6 +53,10 @@ public class CreateWorkLogDto
 public class UpdateWorkLogDto
 {
     public Guid Id { get; set; }
+
+    [Required]
+    [StringLength(1000)]
+    public string Name { get; set; } = string.Empty;
 
     [Required]
     [StringLength(1000)]

@@ -4,6 +4,7 @@ public class WorkLog
 {
     public WorkLog(
         Guid id,
+        string name,
         string description,
         int hoursCounter,
         DateOnly date,
@@ -15,6 +16,7 @@ public class WorkLog
         Guid idStatus)
     {
         Id = id;
+        Name = name;
         Description = description;
         HoursCounter = hoursCounter;
         Date = date;
@@ -27,6 +29,7 @@ public class WorkLog
     }
 
     public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public int HoursCounter { get; set; }
     public DateOnly Date { get; set; }

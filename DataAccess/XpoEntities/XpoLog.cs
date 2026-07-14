@@ -7,9 +7,12 @@ public class XpoLog : XPBaseObject
     public XpoLog(Session session) : base(session) { }
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     private DateTime timestamp;
+
+    [Persistent]
     public DateTime Timestamp
     {
         get => timestamp;
@@ -17,7 +20,8 @@ public class XpoLog : XPBaseObject
     }
 
     private string action = string.Empty;
-    /// <summary>Es.: "Create", "Update", "Delete", "AssignRole", "Login".</summary>
+    
+    [Persistent]
     public string Action
     {
         get => action;
@@ -25,7 +29,8 @@ public class XpoLog : XPBaseObject
     }
 
     private string entity = string.Empty;
-    /// <summary>Es.: "WorkLog", "Project", "User".</summary>
+
+    [Persistent]
     public string Entity
     {
         get => entity;
@@ -33,7 +38,8 @@ public class XpoLog : XPBaseObject
     }
 
     private Guid? entityId;
-    /// <summary>Id dell'entità toccata (null per azioni globali come Login/Register).</summary>
+
+    [Persistent]
     public Guid? EntityId
     {
         get => entityId;
@@ -41,7 +47,8 @@ public class XpoLog : XPBaseObject
     }
 
     private Guid? userId;
-    /// <summary>Id dell'utente che ha eseguito l'azione (null per Login fallito o endpoint pubblici).</summary>
+
+    [Persistent]
     public Guid? UserId
     {
         get => userId;
@@ -49,6 +56,8 @@ public class XpoLog : XPBaseObject
     }
 
     private string? userEmail;
+
+    [Persistent]
     public string? UserEmail
     {
         get => userEmail;
@@ -56,6 +65,8 @@ public class XpoLog : XPBaseObject
     }
 
     private bool success;
+
+    [Persistent]
     public bool Success
     {
         get => success;
@@ -63,7 +74,8 @@ public class XpoLog : XPBaseObject
     }
 
     private string? errorMessage;
-    /// <summary>Popolato solo se Success = false.</summary>
+
+    [Persistent]
     public string? ErrorMessage
     {
         get => errorMessage;

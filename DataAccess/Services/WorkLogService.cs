@@ -61,16 +61,16 @@ public class WorkLogService : IWorkLogService
                     w.Employee.Id == dto.IdEmployee,
                     ct);
 
-             if (existing != null)
+            if (existing != null)
             {
-                await _logger.LogFailureAsync("Create", "Employee", null,
-                    $"Employee '{dto.}' already exists", ct);
-                throw new Exception("Employee already exists");
+                await _logger.LogFailureAsync("Create", "Worklog", null,
+                    $"Worklog '{dto.Name}' already exists", ct);
+                throw new Exception("Worklog already exists");
             }
 
-            // Domain
             var domain = new WorkLog(
                 id: Guid.NewGuid(),
+                name: dto.Name,
                 description: dto.Description,
                 hoursCounter: dto.HoursCounter,
                 date: dto.Date,
@@ -82,10 +82,10 @@ public class WorkLogService : IWorkLogService
                 idStatus: dto.IdStatus
             );
 
-            // XPO
             var xpo = XpoWorkLogMapper.ToXpo(domain, uow);
 
-            // Output DTO
+            await _logger.LogSuccessAsync(uow, "Create", "Worklog", domain.Id, ct);
+
             return XpoWorkLogMapper.ToDto(domain);
         });
     }
@@ -94,15 +94,17 @@ public class WorkLogService : IWorkLogService
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            // 1. Carico l'XPO esistente tramite ID
             var xpo = await uow.GetObjectByKeyAsync<XpoWorkLog>(dto.Id, ct);
             if (xpo == null)
-                throw new Exception("WorkLog not found");
+            {
+                await _logger.LogFailureAsync("Update", "Worklog", dto.Id,
+                    "Worklog not found", ct);
+                throw new Exception("Worklog not found");
+            }
 
-            // 2. Converto XPO → Domain
             var domain = XpoWorkLogMapper.ToDomain(xpo);
 
-            // 3. Aggiorno il Domain con i valori del DTO
+            domain.Name = dto.Name;
             domain.Description = dto.Description;
             domain.HoursCounter = dto.HoursCounter;
             domain.Date = dto.Date;
@@ -112,10 +114,10 @@ public class WorkLogService : IWorkLogService
             domain.IdStatus = dto.IdStatus;
             domain.UpdatedAt = DateTime.UtcNow;
 
-            // 4. Aggiorno l’XPO tramite il mapper
             XpoWorkLogMapper.ToXpo(domain, uow);
 
-            // 5. Restituisco il DTO di output
+            await _logger.LogSuccessAsync(uow, "Update", "Worklog", domain.Id, ct);
+
             return XpoWorkLogMapper.ToDto(domain);
         });
     }

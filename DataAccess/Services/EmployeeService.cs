@@ -74,7 +74,7 @@ public class EmployeeService : IEmployeeService
             var xpo = XpoEmployeeMapper.ToXpo(domain, uow);
 
             await _logger.LogSuccessAsync(uow, "Create", "Employee", domain.Id, ct);
-
+            
             return XpoEmployeeMapper.ToDto(domain);
         });
     }

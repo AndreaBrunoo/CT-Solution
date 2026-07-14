@@ -11,6 +11,7 @@ public class XpoProject : XPBaseObject
     // -----------------------------
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     // -----------------------------
@@ -18,6 +19,8 @@ public class XpoProject : XPBaseObject
     // -----------------------------
 
     private string name = string.Empty;
+
+    [Persistent]
     public string Name
     {
         get => name;
@@ -25,6 +28,8 @@ public class XpoProject : XPBaseObject
     }
 
     private decimal hourlyRate;
+
+    [Persistent]
     public decimal HourlyRate
     {
         get => hourlyRate;
@@ -36,6 +41,8 @@ public class XpoProject : XPBaseObject
     // -----------------------------
 
     private Guid idCompany;
+
+    [Persistent]
     public Guid IdCompany
     {
         get => idCompany;
@@ -47,6 +54,7 @@ public class XpoProject : XPBaseObject
     // -----------------------------
 
     [Association("Company-Projects")]
+    [Persistent]
     public XpoCompany? Company
     {
         get => company;

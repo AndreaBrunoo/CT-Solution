@@ -13,25 +13,31 @@ public class UserService : IUserService
     private readonly XpoDataContext _ctx;
     private readonly PasswordService _passwordService;
     private readonly JwtService _jwtService;
+    private readonly IActionLogger _logger;
 
-    public UserService(UnitOfWork uow, PasswordService passwordService, JwtService jwtService)
+
+    public UserService(UnitOfWork uow, PasswordService passwordService, JwtService jwtService, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
         _passwordService = passwordService;
         _jwtService = jwtService;
     }
 
-    public async Task RegisterAsync(string email, string password)
+    public async Task RegisterAsync(RegisterDto dto, CancellationToken ct)
     {
         await _ctx.DoTranAsync(async uow =>
         {
             var existing = await uow.Query<XpoUser>()
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email == dto.Email, ct);
 
             if (existing != null)
-                throw new Exception("Email already registered");
+            {
+                await _logger.LogFailureAsync("Regsiter", "User", null,
+                    $"User '{dto.Email}' already exists", ct);
+                throw new Exception("User already exists");
+            }
 
-            var (hash, salt) = _passwordService.HashPassword(password);
+            var (hash, salt) = _passwordService.HashPassword(dto.Password);
 
             var xpoRole = await uow.Query<XpoRole>()
                 .FirstOrDefaultAsync(r => r.Name == "User");
@@ -47,36 +53,46 @@ public class UserService : IUserService
 
             var domain = new User(
                 Guid.NewGuid(),
-                email,
+                dto.Email,
                 hash,
                 salt,
                 new List<Role>
                 {
-                new Role(xpoRole.Id, xpoRole.Name)
+                    new Role(xpoRole.Id, xpoRole.Name)
                 }
             );
 
             XpoUserMapper.ToXpo(domain, uow);
+
+            await _logger.LogSuccessAsync(uow, "Register", "User", domain.Id, ct);
 
             return true;
         });
     }
 
 
-    public async Task<string> LoginAsync(string email, string password)
+    public async Task<string> LoginAsync(LoginDto dto, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.Query<XpoUser>()
-                .FirstOrDefaultAsync(u => u.Email == email)
-                ?? throw new Exception("Invalid credentials");
+                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+
+            if (xpo != null)
+            {
+                await _logger.LogFailureAsync("Login", "User", null,
+                    $"User '{dto.Email}' already exists", ct);
+                throw new Exception("User already exists");
+            }
 
             var domain = XpoUserMapper.ToDomain(xpo);
 
-            var valid = _passwordService.VerifyPassword(password, domain.PasswordHash, domain.PasswordSalt);
+            var valid = _passwordService.VerifyPassword(dto.Password, domain.PasswordHash, domain.PasswordSalt);
 
             if (!valid)
                 throw new Exception("Invalid credentials");
+
+            await _logger.LogSuccessAsync(uow, "Login", "User", domain.Id, ct);
 
             return _jwtService.GenerateToken(domain);
         });
@@ -131,14 +147,26 @@ public class UserService : IUserService
     {
         await _ctx.DoTranAsync(async uow =>
         {
-            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct)
-                ?? throw new Exception("User not found.");
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (user != null)
+            {
+                await _logger.LogFailureAsync("AssignRole", "User", null,
+                    $"User '{roleId}' User not found", ct);
+                throw new Exception("User not found");
+            }
 
-            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct)
-                ?? throw new Exception("Role not found.");
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
+            if (role != null)
+            {
+                await _logger.LogFailureAsync("AssignRole", "Role", null,
+                    $"Role '{roleId}' Role not found", ct);
+                throw new Exception("Role not found");
+            }
 
             if (!user.Roles.Contains(role))
                 user.Roles.Add(role);
+
+            await _logger.LogSuccessAsync(uow, "AssignRole", "User", userId, ct);
 
             return true;
         });
@@ -151,14 +179,26 @@ public class UserService : IUserService
     {
         await _ctx.DoTranAsync(async uow =>
         {
-            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct)
-                ?? throw new Exception("User not found.");
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (user != null)
+            {
+                await _logger.LogFailureAsync("RemoveRole", "User", null,
+                    $"User '{roleId}' User not found", ct);
+                throw new Exception("User not found");
+            }
 
-            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct)
-                ?? throw new Exception("Role not found.");
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
+            if (role != null)
+            {
+                await _logger.LogFailureAsync("RemoveRole", "Role", null,
+                    $"Role '{roleId}' Role not found", ct);
+                throw new Exception("Role not found");
+            }
 
             if (user.Roles.Contains(role))
                 user.Roles.Remove(role);
+                
+            await _logger.LogSuccessAsync(uow, "RemoveRole", "User", userId, ct);
 
             return true;
         });

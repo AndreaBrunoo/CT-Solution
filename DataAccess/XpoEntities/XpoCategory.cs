@@ -11,6 +11,7 @@ public class XpoCategory : XPBaseObject
     // -----------------------------
 
     [Key(true)]
+    [Persistent]
     public Guid Id { get; set; }
 
     // -----------------------------
@@ -18,6 +19,8 @@ public class XpoCategory : XPBaseObject
     // -----------------------------
 
     private string name = string.Empty;
+    
+    [Persistent]
     public string Name
     {
         get => name;
