@@ -11,17 +11,19 @@ namespace Sln.DataAccess.Services;
 public class ProjectService : IProjectService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public ProjectService(UnitOfWork uow)
+    public ProjectService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
-    public async Task<ProjectDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ProjectDto?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoProject>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoProject>(id, ct);
             if (xpo == null) return null;
 
             var domain = XpoProjectMapper.ToDomain(xpo);
@@ -30,11 +32,11 @@ public class ProjectService : IProjectService
         });
     }
 
-    public async Task<IReadOnlyList<ProjectDto>?> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ProjectDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoProject>().ToListAsync(cancellationToken);
+            var list = await uow.Query<XpoProject>().ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -48,7 +50,7 @@ public class ProjectService : IProjectService
         });
     }
 
-    public async Task<ProjectDto> CreateAsync(CreateProjectDto dto, CancellationToken cancellationToken)
+    public async Task<ProjectDto> CreateAsync(CreateProjectDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
@@ -57,12 +59,16 @@ public class ProjectService : IProjectService
                     w.Name == dto.Name &&
                     w.HourlyRate == dto.HourlyRate &&
                     w.Company.Id == dto.IdCompany,
-                    cancellationToken);
+                    ct);
 
             if (existing != null)
+            {
+                await _logger.LogFailureAsync("Create", "Project", null,
+                    $"Project '{dto.Name}' for company {dto.IdCompany} already exists",
+                    ct);
                 throw new Exception("Project already exists");
+            }
 
-            // Domain
             var domain = new Project(
                 id: Guid.NewGuid(),
                 name: dto.Name,
@@ -70,48 +76,55 @@ public class ProjectService : IProjectService
                 idCompany: dto.IdCompany
             );
 
-            // XPO
             var xpo = XpoProjectMapper.ToXpo(domain, uow);
 
-            // Output DTO
+            await _logger.LogSuccessAsync(uow, "Create", "Project", domain.Id, ct);
+
             return XpoProjectMapper.ToDto(domain);
         });
     }
 
-    public async Task<ProjectDto?> UpdateAsync(UpdateProjectDto dto, CancellationToken cancellationToken)
+    public async Task<ProjectDto?> UpdateAsync(UpdateProjectDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            // 1. Carico l'XPO esistente tramite ID
-            var xpo = await uow.GetObjectByKeyAsync<XpoProject>(dto.Id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoProject>(dto.Id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Update", "Project", dto.Id,
+                    "Project not found", ct);
                 throw new Exception("Project not found");
+            }
 
-            // 2. Converto XPO → Domain
             var domain = XpoProjectMapper.ToDomain(xpo);
 
-            // 3. Aggiorno il Domain con i valori del DTO
             domain.Name = dto.Name;
             domain.HourlyRate = dto.HourlyRate;
             domain.IdCompany = dto.IdCompany;
 
-            // 4. Aggiorno l’XPO tramite il mapper
             XpoProjectMapper.ToXpo(domain, uow);
 
-            // 5. Restituisco il DTO di output
+            await _logger.LogSuccessAsync(uow, "Update", "Project", domain.Id, ct);
+
             return XpoProjectMapper.ToDto(domain);
         });
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoProject>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoProject>(id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Delete", "Project", id,
+                    "Project not found", ct);
                 throw new Exception("Project not found");
+            }
 
             xpo.Delete();
+
+            await _logger.LogSuccessAsync(uow, "Delete", "Project", id, ct);
 
             return true;
         });

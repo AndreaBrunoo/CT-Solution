@@ -4,9 +4,9 @@ namespace Sln.Domain.Interfaces;
 
 public interface IProjectService
 {
-    Task<ProjectDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<ProjectDto>?> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<ProjectDto> CreateAsync(CreateProjectDto dto, CancellationToken cancellationToken = default);
-    Task<ProjectDto?> UpdateAsync(UpdateProjectDto dto, CancellationToken cancellationToken = default);
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<ProjectDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<ProjectDto>?> GetAllAsync(CancellationToken ct = default);
+    Task<ProjectDto> CreateAsync(CreateProjectDto dto, CancellationToken ct = default);
+    Task<ProjectDto?> UpdateAsync(UpdateProjectDto dto, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

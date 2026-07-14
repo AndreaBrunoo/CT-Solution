@@ -11,31 +11,39 @@ namespace Sln.DataAccess.Services;
 public class RoleService : IRoleService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public RoleService(UnitOfWork uow)
+    public RoleService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
     // ---------------------------------------------------------
     // CREATE ROLE
     // ---------------------------------------------------------
-    public async Task<RoleDto> CreateRoleAsync(string name, CancellationToken ct)
+    public async Task<RoleDto> CreateRoleAsync(CreateRoleDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
             var existing = await uow.Query<XpoRole>()
-                .FirstOrDefaultAsync(r => r.Name == name, ct);
+                .FirstOrDefaultAsync(r => r.Name == dto.Name, ct);
 
             if (existing != null)
+            {
+                await _logger.LogFailureAsync("Create", "Role", null,
+                    $"Role '{dto.Name}' already exists", ct);
                 throw new Exception("Role already exists");
+            }
 
             var domain = new Role(
                 id: Guid.NewGuid(),
-                name: name
+                name: dto.Name
             );
 
             var xpo = XpoRoleMapper.ToXpo(domain, uow);
+
+            await _logger.LogSuccessAsync(uow, "Create", "Role", domain.Id, ct);
 
             return XpoRoleMapper.ToDto(domain);
         });
@@ -68,10 +76,17 @@ public class RoleService : IRoleService
     {
         await _ctx.DoTranAsync(async uow =>
         {
-            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct)
-                ?? throw new Exception("Role not found");
-
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
+            
+            if (role == null)
+            {
+                await _logger.LogFailureAsync("Delete", "Role", roleId,
+                    "Role not found", ct);
+                throw new Exception("Role not found");
+            }
             role.Delete();
+
+            await _logger.LogSuccessAsync(uow, "Delete", "Role", roleId, ct);
 
             return true;
         });

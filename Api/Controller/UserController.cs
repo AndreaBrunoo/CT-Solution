@@ -30,23 +30,23 @@ public class UserController : ControllerBase
     }
 
     [HttpGet()]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var user = await _userService.GetAllAsync(cancellationToken);
+        var user = await _userService.GetAllAsync(ct);
         return user == null ? NotFound() : Ok(user);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var user = await _userService.GetByIdAsync(id, cancellationToken);
+        var user = await _userService.GetByIdAsync(id, ct);
         return user == null ? NotFound() : Ok(user);
     }
 
     [HttpGet("email/{email}")]
-    public async Task<IActionResult> GetByEmail(string email, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetByEmail(string email, CancellationToken ct)
     {
-        var user = await _userService.GetByEmailAsync(email, cancellationToken);
+        var user = await _userService.GetByEmailAsync(email, ct);
         return user == null ? NotFound() : Ok(user);
     }
 

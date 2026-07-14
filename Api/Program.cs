@@ -26,10 +26,14 @@ builder.Services.AddScoped<UnitOfWork>(sp =>
     return new UnitOfWork(XpoDefault.DataLayer);
 });
 
+// Accesso al HttpContext (usato dal logger azioni per leggere l'utente dal JWT)
+builder.Services.AddHttpContextAccessor();
+
 // ------------------------------------------------------------
 // 2. SERVIZI DELLA TUA APPLICAZIONE
 // ------------------------------------------------------------
 
+builder.Services.AddScoped<IActionLogger, ActionLogger>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IWorkLogService, WorkLogService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
@@ -40,9 +44,11 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IActionLogger, ActionLogger>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<JwtService>();
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

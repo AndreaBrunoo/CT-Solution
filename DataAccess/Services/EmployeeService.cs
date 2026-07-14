@@ -11,17 +11,19 @@ namespace Sln.DataAccess.Services;
 public class EmployeeService : IEmployeeService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public EmployeeService(UnitOfWork uow)
+    public EmployeeService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
-    public async Task<EmployeeDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<EmployeeDto?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(id, ct);
             if (xpo == null) return null;
 
             var domain = XpoEmployeeMapper.ToDomain(xpo);
@@ -30,11 +32,11 @@ public class EmployeeService : IEmployeeService
         });
     }
 
-    public async Task<IReadOnlyList<EmployeeDto>?> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<EmployeeDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoEmployee>().ToListAsync(cancellationToken);
+            var list = await uow.Query<XpoEmployee>().ToListAsync(ct);
 
             return list
             .Select(xpo =>
@@ -47,19 +49,22 @@ public class EmployeeService : IEmployeeService
         });
     }
 
-    public async Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto, CancellationToken cancellationToken)
+    public async Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            // Controllo duplicati
             var existing = await uow.Query<XpoEmployee>()
                 .FirstOrDefaultAsync(e =>
                 e.UserName == dto.UserName &&
                 e.User.Id == dto.IdUser,
-                cancellationToken);
+                ct);
 
             if (existing != null)
+            {
+                await _logger.LogFailureAsync("Create", "Employee", null,
+                    $"Employee '{dto.UserName}' already exists", ct);
                 throw new Exception("Employee already exists");
+            }
 
             var domain = new Employee(
                 id: Guid.NewGuid(),
@@ -68,39 +73,51 @@ public class EmployeeService : IEmployeeService
             );
             var xpo = XpoEmployeeMapper.ToXpo(domain, uow);
 
+            await _logger.LogSuccessAsync(uow, "Create", "Employee", domain.Id, ct);
+
             return XpoEmployeeMapper.ToDto(domain);
         });
     }
 
-    public async Task<EmployeeDto?> UpdateAsync(UpdateEmployeeDto dto, CancellationToken cancellationToken)
+    public async Task<EmployeeDto?> UpdateAsync(UpdateEmployeeDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            // 1. Carico l'XPO esistente tramite ID
-            var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(dto.Id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(dto.Id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Update", "Employee", dto.Id,
+                    "Employee not found", ct);
                 throw new Exception("Employee not found");
+            }
 
             var domain = XpoEmployeeMapper.ToDomain(xpo);
 
-            // 3. Aggiorno il Domain con i valori del DTO
             domain.UserName = dto.UserName;
 
             XpoEmployeeMapper.ToXpo(domain, uow);
 
+            await _logger.LogSuccessAsync(uow, "Update", "Employee", domain.Id, ct);
+
             return XpoEmployeeMapper.ToDto(domain);
         });
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Delete", "Employee", id,
+                    "Employee not found", ct);
                 throw new Exception("Employee not found");
+            }
 
             xpo.Delete();
+
+            await _logger.LogSuccessAsync(uow, "Delete", "Employee", id, ct);
 
             return true;
         });

@@ -16,37 +16,37 @@ public class CategoryController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var category = await _categoryService.GetByIdAsync(id, cancellationToken);
+        var category = await _categoryService.GetByIdAsync(id, ct);
         return category == null ? NotFound() : Ok(category);
     }
 
     [HttpGet()]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var category = await _categoryService.GetAllAsync(cancellationToken);
+        var category = await _categoryService.GetAllAsync(ct);
         return category == null ? NotFound() : Ok(category);
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> Create(CreateCategoryDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create(CreateCategoryDto dto, CancellationToken ct)
     {
-        await _categoryService.CreateAsync(dto, cancellationToken);
+        await _categoryService.CreateAsync(dto, ct);
         return Ok(new { message = "Creation successful" });
     }
 
     [HttpPut("update")]
-    public async Task<IActionResult> Update(UpdateCategoryDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(UpdateCategoryDto dto, CancellationToken ct)
     {
-        await _categoryService.UpdateAsync(dto, cancellationToken);
+        await _categoryService.UpdateAsync(dto, ct);
         return Ok(new { message = "Update successful" });
     }
 
     [HttpDelete("delete")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        await _categoryService.DeleteAsync(id, cancellationToken);
+        await _categoryService.DeleteAsync(id, ct);
         return Ok(new { message = "Delete successful" });
     }
 }

@@ -11,17 +11,19 @@ namespace Sln.DataAccess.Services;
 public class WorkLogService : IWorkLogService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public WorkLogService(UnitOfWork uow)
+    public WorkLogService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
-    public async Task<WorkLogDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<WorkLogDto?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoWorkLog>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoWorkLog>(id, ct);
             if (xpo == null) return null;
 
             var domain = XpoWorkLogMapper.ToDomain(xpo);
@@ -30,11 +32,11 @@ public class WorkLogService : IWorkLogService
         });
     }
 
-    public async Task<IReadOnlyList<WorkLogDto>?> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<WorkLogDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoWorkLog>().ToListAsync(cancellationToken);
+            var list = await uow.Query<XpoWorkLog>().ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -48,7 +50,7 @@ public class WorkLogService : IWorkLogService
         });
     }
 
-    public async Task<WorkLogDto> CreateAsync(CreateWorkLogDto dto, CancellationToken cancellationToken)
+    public async Task<WorkLogDto> CreateAsync(CreateWorkLogDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
@@ -57,10 +59,14 @@ public class WorkLogService : IWorkLogService
                     w.Description == dto.Description &&
                     w.Date == dto.Date &&
                     w.Employee.Id == dto.IdEmployee,
-                    cancellationToken);
+                    ct);
 
-            if (existing != null)
-                throw new Exception("WorkLog already exists");
+             if (existing != null)
+            {
+                await _logger.LogFailureAsync("Create", "Employee", null,
+                    $"Employee '{dto.}' already exists", ct);
+                throw new Exception("Employee already exists");
+            }
 
             // Domain
             var domain = new WorkLog(
@@ -84,12 +90,12 @@ public class WorkLogService : IWorkLogService
         });
     }
 
-    public async Task<WorkLogDto?> UpdateAsync(UpdateWorkLogDto dto, CancellationToken cancellationToken)
+    public async Task<WorkLogDto?> UpdateAsync(UpdateWorkLogDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
             // 1. Carico l'XPO esistente tramite ID
-            var xpo = await uow.GetObjectByKeyAsync<XpoWorkLog>(dto.Id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoWorkLog>(dto.Id, ct);
             if (xpo == null)
                 throw new Exception("WorkLog not found");
 
@@ -114,15 +120,21 @@ public class WorkLogService : IWorkLogService
         });
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoWorkLog>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoWorkLog>(id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Delete", "WorkLog", id,
+                    "WorkLog not found", ct);
                 throw new Exception("WorkLog not found");
+            }
 
             xpo.Delete();
+
+            await _logger.LogSuccessAsync(uow, "Delete", "WorkLog", id, ct);
 
             return true;
         });

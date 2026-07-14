@@ -9,37 +9,63 @@ public static class XpoUserMapper
 {
     public static XpoUser ToXpo(User domain, UnitOfWork uow)
     {
-        // Carica o crea l'oggetto XPO
-        var xpo = uow.GetObjectByKey<XpoUser>(domain.Id) 
+        var xpo = uow.GetObjectByKey<XpoUser>(domain.Id)
                   ?? new XpoUser(uow)
                   {
                       Id = domain.Id
                   };
 
-        // Primitive fields
-        xpo.Id            = domain.Id;
-        xpo.Email         = domain.Email;
-        xpo.PasswordHash  = domain.PasswordHash;
-        xpo.PasswordSalt  = domain.PasswordSalt;
+        xpo.Email = domain.Email;
+        xpo.PasswordHash = domain.PasswordHash;
+        xpo.PasswordSalt = domain.PasswordSalt;
 
+        xpo.Roles.Reload();
+
+        var existingRoles = xpo.Roles.ToList();
+        foreach (var r in existingRoles)
+            xpo.Roles.Remove(r);
+
+        foreach (var role in domain.Roles)
+        {
+            var xpoRole = uow.GetObjectByKey<XpoRole>(role.Id)
+                         ?? new XpoRole(uow)
+                         {
+                             Id = role.Id,
+                             Name = role.Name
+                         };
+
+            xpo.Roles.Add(xpoRole);
+        }
         return xpo;
     }
 
+
     public static User ToDomain(XpoUser xpo)
     {
+        xpo.Roles.Reload();
+
+        var roles = xpo.Roles
+            .Select(r => new Role(r.Id, r.Name))
+            .ToList();
+
         return new User(
-            id: xpo.Id,
-            email: xpo.Email,
-            passwordHash: xpo.PasswordHash,
-            passwordSalt: xpo.PasswordSalt
+            xpo.Id,
+            xpo.Email,
+            xpo.PasswordHash,
+            xpo.PasswordSalt,
+            roles
         );
     }
-        public static UserDto ToDto(User domain)
+
+    public static UserDto ToDto(User domain)
     {
         return new UserDto
         {
             Id = domain.Id,
-            Email = domain.Email
+            Email = domain.Email,
+            Roles = domain.Roles
+            .Select(XpoRoleMapper.ToDto)
+            .ToList()
         };
     }
 }

@@ -6,12 +6,14 @@ public class User
         Guid id,
         string email,
         string passwordHash,
-        string passwordSalt)
+        string passwordSalt,
+        ICollection<Role> roles)
     {
         Id = id;
         Email = email;
         PasswordHash = passwordHash;
         PasswordSalt = passwordSalt;
+        Roles = roles;
     }
 
     public Guid Id { get; set; }

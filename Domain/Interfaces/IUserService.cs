@@ -5,9 +5,9 @@ public interface IUserService
 {
     Task RegisterAsync(string email, string password);
     Task<string> LoginAsync(string email, string password);
-    Task<UserDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
-    Task<UserDto?> GetByEmailAsync(string email, CancellationToken cancellationToken);
-    Task<IReadOnlyList<UserDto>?> GetAllAsync(CancellationToken cancellationToken);
+    Task<UserDto?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct);
+    Task<IReadOnlyList<UserDto>?> GetAllAsync(CancellationToken ct);
     Task AssignRoleAsync(Guid userId, Guid roleId, CancellationToken ct);
     Task RemoveRoleAsync(Guid userId, Guid roleId, CancellationToken ct);
     Task<bool> HasRoleAsync(Guid userId, string roleName, CancellationToken ct);

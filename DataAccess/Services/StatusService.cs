@@ -11,17 +11,19 @@ namespace Sln.DataAccess.Services;
 public class StatusService : IStatusService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public StatusService(UnitOfWork uow)
+    public StatusService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
-    public async Task<StatusDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<StatusDto?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(id, ct);
             if (xpo == null) return null;
 
             var domain = XpoStatusMapper.ToDomain(xpo);
@@ -30,11 +32,11 @@ public class StatusService : IStatusService
         });
     }
 
-    public async Task<IReadOnlyList<StatusDto>?> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<StatusDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoStatus>().ToListAsync(cancellationToken);
+            var list = await uow.Query<XpoStatus>().ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -48,17 +50,21 @@ public class StatusService : IStatusService
         });
     }
 
-    public async Task<StatusDto> CreateAsync(CreateStatusDto dto, CancellationToken cancellationToken)
+    public async Task<StatusDto> CreateAsync(CreateStatusDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
             var existing = await uow.Query<XpoStatus>()
                 .FirstOrDefaultAsync(w =>
                     w.Name == dto.Name,
-                    cancellationToken);
+                    ct);
 
             if (existing != null)
+            {
+                await _logger.LogFailureAsync("Create", "Status", null,
+                    $"Status with name '{dto.Name}' already exists", ct);
                 throw new Exception("Status already exists");
+            }
 
             // Domain
             var domain = new Status(
@@ -69,19 +75,25 @@ public class StatusService : IStatusService
             // XPO
             var xpo = XpoStatusMapper.ToXpo(domain, uow);
 
+            await _logger.LogSuccessAsync(uow, "Create", "Status", domain.Id, ct);
+
             // Output DTO
             return XpoStatusMapper.ToDto(domain);
         });
     }
 
-    public async Task<StatusDto?> UpdateAsync(UpdateStatusDto dto, CancellationToken cancellationToken)
+    public async Task<StatusDto?> UpdateAsync(UpdateStatusDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
             // 1. Carico l'XPO esistente tramite ID
-            var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(dto.Id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(dto.Id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Update", "Status", dto.Id,
+                    "Status not found", ct);
                 throw new Exception("Status not found");
+            }
 
             // 2. Converto XPO → Domain
             var domain = XpoStatusMapper.ToDomain(xpo);
@@ -92,20 +104,28 @@ public class StatusService : IStatusService
             // 4. Aggiorno l’XPO tramite il mapper
             XpoStatusMapper.ToXpo(domain, uow);
 
+            await _logger.LogSuccessAsync(uow, "Update", "Status", domain.Id, ct);
+
             // 5. Restituisco il DTO di output
             return XpoStatusMapper.ToDto(domain);
         });
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Delete", "Status", id,
+                    "Status not found", ct);
                 throw new Exception("Status not found");
+            }
 
             xpo.Delete();
+
+            await _logger.LogSuccessAsync(uow, "Delete", "Status", id, ct);
 
             return true;
         });

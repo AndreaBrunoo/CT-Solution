@@ -4,9 +4,9 @@ namespace Sln.Domain.Interfaces;
 
 public interface IEmployeeService
 {
-    Task<EmployeeDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<EmployeeDto>?> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto, CancellationToken cancellationToken = default);
-    Task<EmployeeDto?> UpdateAsync(UpdateEmployeeDto dto, CancellationToken cancellationToken = default);
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<EmployeeDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<EmployeeDto>?> GetAllAsync(CancellationToken ct = default);
+    Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto, CancellationToken ct = default);
+    Task<EmployeeDto?> UpdateAsync(UpdateEmployeeDto dto, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

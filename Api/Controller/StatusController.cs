@@ -16,37 +16,37 @@ public class StatusController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var status = await _statusService.GetByIdAsync(id, cancellationToken);
+        var status = await _statusService.GetByIdAsync(id, ct);
         return status == null ? NotFound() : Ok(status);
     }
 
     [HttpGet()]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var status = await _statusService.GetAllAsync(cancellationToken);
+        var status = await _statusService.GetAllAsync(ct);
         return status == null ? NotFound() : Ok(status);
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> Create(CreateStatusDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create(CreateStatusDto dto, CancellationToken ct)
     {
-        await _statusService.CreateAsync(dto, cancellationToken);
+        await _statusService.CreateAsync(dto, ct);
         return Ok(new { message = "Creation successful" });
     }
 
     [HttpPut("update")]
-    public async Task<IActionResult> Update(UpdateStatusDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(UpdateStatusDto dto, CancellationToken ct)
     {
-        await _statusService.UpdateAsync(dto, cancellationToken);
+        await _statusService.UpdateAsync(dto, ct);
         return Ok(new { message = "Update successful" });
     }
 
     [HttpDelete("delete")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        await _statusService.DeleteAsync(id, cancellationToken);
+        await _statusService.DeleteAsync(id, ct);
         return Ok(new { message = "Delete successful" });
     }
 }

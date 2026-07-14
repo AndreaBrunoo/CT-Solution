@@ -33,13 +33,35 @@ public class UserService : IUserService
 
             var (hash, salt) = _passwordService.HashPassword(password);
 
-            var domain = new User(Guid.NewGuid(), email, hash, salt);
+            var xpoRole = await uow.Query<XpoRole>()
+                .FirstOrDefaultAsync(r => r.Name == "User");
+
+            if (xpoRole == null)
+            {
+                xpoRole = new XpoRole(uow)
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "User"
+                };
+            }
+
+            var domain = new User(
+                Guid.NewGuid(),
+                email,
+                hash,
+                salt,
+                new List<Role>
+                {
+                new Role(xpoRole.Id, xpoRole.Name)
+                }
+            );
 
             XpoUserMapper.ToXpo(domain, uow);
 
             return true;
         });
     }
+
 
     public async Task<string> LoginAsync(string email, string password)
     {
@@ -60,28 +82,28 @@ public class UserService : IUserService
         });
     }
 
-    public async Task<IReadOnlyList<UserDto>?> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<UserDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoUser>().ToListAsync(cancellationToken);
+            var list = await uow.Query<XpoUser>().ToListAsync(ct);
 
             return list
             .Select(xpo =>
             {
                 var domain = XpoUserMapper.ToDomain(xpo);
-                
+
                 return XpoUserMapper.ToDto(domain);
             })
             .ToList();
         });
     }
 
-    public async Task<UserDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserDto?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoUser>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoUser>(id, ct);
 
             return xpo is null
                 ? null
@@ -89,12 +111,12 @@ public class UserService : IUserService
         });
     }
 
-    public async Task<UserDto?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    public async Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.Query<XpoUser>()
-                .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+                .FirstOrDefaultAsync(u => u.Email == email, ct);
 
             return xpo is null
                 ? null

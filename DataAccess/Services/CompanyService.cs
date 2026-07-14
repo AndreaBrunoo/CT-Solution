@@ -11,17 +11,19 @@ namespace Sln.DataAccess.Services;
 public class CompanyService : ICompanyService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public CompanyService(UnitOfWork uow)
+    public CompanyService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
-    public async Task<CompanyDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<CompanyDto?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(id, ct);
             if (xpo == null) return null;
 
             var domain = XpoCompanyMapper.ToDomain(xpo);
@@ -30,11 +32,11 @@ public class CompanyService : ICompanyService
         });
     }
 
-    public async Task<IReadOnlyList<CompanyDto>?> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<CompanyDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoCompany>().ToListAsync(cancellationToken);
+            var list = await uow.Query<XpoCompany>().ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -48,7 +50,7 @@ public class CompanyService : ICompanyService
         });
     }
 
-    public async Task<CompanyDto> CreateAsync(CreateCompanyDto dto, CancellationToken cancellationToken)
+    public async Task<CompanyDto> CreateAsync(CreateCompanyDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
@@ -56,59 +58,69 @@ public class CompanyService : ICompanyService
                 .FirstOrDefaultAsync(w =>
                     w.Name == dto.Name &&
                     w.Email == dto.Email,
-                    cancellationToken);
+                    ct);
 
             if (existing != null)
+            {
+                await _logger.LogFailureAsync("Create", "Company", null,
+                    $"Company '{dto.Name}' already exists", ct);
                 throw new Exception("Company already exists");
+            }
 
-            // Domain
             var domain = new Company(
                 id: Guid.NewGuid(),
                 name: dto.Name,
                 email: dto.Email
             );
 
-            // XPO
             var xpo = XpoCompanyMapper.ToXpo(domain, uow);
 
-            // Output DTO
+            await _logger.LogSuccessAsync(uow, "Create", "Company", domain.Id, ct);
+
             return XpoCompanyMapper.ToDto(domain);
         });
     }
 
-    public async Task<CompanyDto?> UpdateAsync(UpdateCompanyDto dto, CancellationToken cancellationToken)
+    public async Task<CompanyDto?> UpdateAsync(UpdateCompanyDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            // 1. Carico l'XPO esistente tramite ID
-            var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(dto.Id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(dto.Id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Update", "Company", dto.Id,
+                    "Company not found", ct);
                 throw new Exception("Company not found");
+            }
 
-            // 2. Converto XPO → Domain
             var domain = XpoCompanyMapper.ToDomain(xpo);
 
-            // 3. Aggiorno il Domain con i valori del DTO
             domain.Name = dto.Name;
             domain.Email = dto.Email;
 
-            // 4. Aggiorno l’XPO tramite il mapper
             XpoCompanyMapper.ToXpo(domain, uow);
 
-            // 5. Restituisco il DTO di output
+            await _logger.LogSuccessAsync(uow, "Update", "Company", domain.Id, ct);
+
             return XpoCompanyMapper.ToDto(domain);
         });
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Delete", "Company", id,
+                    "Company not found", ct);
                 throw new Exception("Company not found");
+            }
 
             xpo.Delete();
+
+            await _logger.LogSuccessAsync(uow, "Delete", "Company", id, ct);
 
             return true;
         });

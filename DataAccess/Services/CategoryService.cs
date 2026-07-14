@@ -11,17 +11,19 @@ namespace Sln.DataAccess.Services;
 public class CategoryService : ICategoryService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public CategoryService(UnitOfWork uow)
+    public CategoryService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
-    public async Task<CategoryDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<CategoryDto?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(id, ct);
             if (xpo == null) return null;
 
             var domain = XpoCategoryMapper.ToDomain(xpo);
@@ -30,11 +32,11 @@ public class CategoryService : ICategoryService
         });
     }
 
-    public async Task<IReadOnlyList<CategoryDto>?> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<CategoryDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoCategory>().ToListAsync(cancellationToken);
+            var list = await uow.Query<XpoCategory>().ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -48,17 +50,21 @@ public class CategoryService : ICategoryService
         });
     }
 
-    public async Task<CategoryDto> CreateAsync(CreateCategoryDto dto, CancellationToken cancellationToken)
+    public async Task<CategoryDto> CreateAsync(CreateCategoryDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
             var existing = await uow.Query<XpoCategory>()
                 .FirstOrDefaultAsync(w =>
                     w.Name == dto.Name,
-                    cancellationToken);
+                    ct);
 
             if (existing != null)
+            {
+                await _logger.LogFailureAsync("Create", "Category", null,
+                    $"Category with name '{dto.Name}' already exists", ct);
                 throw new Exception("Category already exists");
+            }
 
             // Domain
             var domain = new Category(
@@ -66,46 +72,53 @@ public class CategoryService : ICategoryService
                 name: dto.Name
             );
 
-            // XPO
             var xpo = XpoCategoryMapper.ToXpo(domain, uow);
 
-            // Output DTO
+            await _logger.LogSuccessAsync(uow, "Create", "Category", domain.Id, ct);
+
             return XpoCategoryMapper.ToDto(domain);
         });
     }
 
-    public async Task<CategoryDto?> UpdateAsync(UpdateCategoryDto dto, CancellationToken cancellationToken)
+    public async Task<CategoryDto?> UpdateAsync(UpdateCategoryDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            // 1. Carico l'XPO esistente tramite ID
-            var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(dto.Id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(dto.Id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Update", "Category", dto.Id,
+                    "Category not found", ct);
                 throw new Exception("Category not found");
+            }
 
-            // 2. Converto XPO → Domain
             var domain = XpoCategoryMapper.ToDomain(xpo);
 
-            // 3. Aggiorno il Domain con i valori del DTO
             domain.Name = dto.Name;
 
-            // 4. Aggiorno l’XPO tramite il mapper
             XpoCategoryMapper.ToXpo(domain, uow);
 
-            // 5. Restituisco il DTO di output
+            await _logger.LogSuccessAsync(uow, "Update", "Category", domain.Id, ct);
+
             return XpoCategoryMapper.ToDto(domain);
         });
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
         {
-            var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(id, cancellationToken);
+            var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(id, ct);
             if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Delete", "Category", id,
+                    "Category not found", ct);
                 throw new Exception("Category not found");
+            }
 
             xpo.Delete();
+
+            await _logger.LogSuccessAsync(uow, "Delete", "Category", id, ct);
 
             return true;
         });

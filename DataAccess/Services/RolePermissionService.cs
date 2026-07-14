@@ -1,5 +1,4 @@
 using DevExpress.Xpo;
-using Sln.Domain.Entities;
 using Sln.Domain.Interfaces;
 using Sln.Domain.DTOs;
 using Sln.DataAccess.XpoEntities;
@@ -11,10 +10,12 @@ namespace Sln.DataAccess.Services;
 public class RolePermissionService : IRolePermissionService
 {
     private readonly XpoDataContext _ctx;
+    private readonly IActionLogger _logger;
 
-    public RolePermissionService(UnitOfWork uow)
+    public RolePermissionService(UnitOfWork uow, IActionLogger logger)
     {
         _ctx = new XpoDataContext(uow);
+        _logger = logger;
     }
 
     // ---------------------------------------------------------
@@ -24,14 +25,26 @@ public class RolePermissionService : IRolePermissionService
     {
         await _ctx.DoTranAsync(async uow =>
         {
-            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct)
-                ?? throw new Exception("Role not found");
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
+            if (role != null)
+            {
+                await _logger.LogFailureAsync("AssignPermission", "Role", null,
+                    $"Role '{roleId}' Role not found", ct);
+                throw new Exception("Role not found");
+            }
 
-            var perm = await uow.GetObjectByKeyAsync<XpoPermission>(permissionId, ct)
-                ?? throw new Exception("Permission not found");
+            var perm = await uow.GetObjectByKeyAsync<XpoPermission>(permissionId, ct);
+            if (perm != null)
+            {
+                await _logger.LogFailureAsync("AssignPermission", "Permission", null,
+                    $"Permission '{permissionId}' Permission not found", ct);
+                throw new Exception("Permission not found");
+            }
 
             if (!role.Permissions.Contains(perm))
                 role.Permissions.Add(perm);
+
+            await _logger.LogSuccessAsync(uow, "AssignPermission", "Permission", permissionId, ct);
 
             return true;
         });
@@ -44,14 +57,26 @@ public class RolePermissionService : IRolePermissionService
     {
         await _ctx.DoTranAsync(async uow =>
         {
-            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct)
-                ?? throw new Exception("Role not found");
-
-            var perm = await uow.GetObjectByKeyAsync<XpoPermission>(permissionId, ct)
-                ?? throw new Exception("Permission not found");
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
+            if (role != null)
+            {
+                await _logger.LogFailureAsync("RemoveRolePermission", "Role", null,
+                    $"Role '{roleId}' Role not found", ct);
+                throw new Exception("Role not found");
+            }
+            
+            var perm = await uow.GetObjectByKeyAsync<XpoPermission>(permissionId, ct);
+            if (perm != null)
+            {
+                await _logger.LogFailureAsync("RemoveRolePermission", "Permission", null,
+                    $"Permission '{permissionId}' Permission not found", ct);
+                throw new Exception("Permission not found");
+            }
 
             if (role.Permissions.Contains(perm))
                 role.Permissions.Remove(perm);
+
+            await _logger.LogSuccessAsync(uow, "RemoveRolePermission", "Permmission", permissionId, ct);
 
             return true;
         });
