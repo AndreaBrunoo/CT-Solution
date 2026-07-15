@@ -83,15 +83,30 @@ public class UserService : IUserService
             {
                 await _logger.LogFailureAsync("Login", "User", null,
                     $"User '{dto.Email}' not exists", ct);
+
                 throw new Exception("User not exists");
             }
 
             var domain = XpoUserMapper.ToDomain(xpo);
 
             var valid = _passwordService.VerifyPassword(dto.Password, domain.PasswordHash, domain.PasswordSalt);
-
             if (!valid)
                 throw new Exception("Invalid credentials");
+
+            if (domain.Employee == null)
+            {
+                var employee = new Employee(
+                    Guid.NewGuid(),
+                    domain.Email
+                );
+
+                employee.IdUser = domain.Id;
+                domain.Employee = employee;
+
+                var xpoEmployee = XpoEmployeeMapper.ToXpo(employee, uow);
+
+                await uow.CommitChangesAsync();
+            }
 
             await _logger.LogSuccessAsync(uow, "Login", "User", domain.Id, ct);
 
@@ -198,7 +213,7 @@ public class UserService : IUserService
 
             if (user.Roles.Contains(role))
                 user.Roles.Remove(role);
-                
+
             await _logger.LogSuccessAsync(uow, "RemoveRole", "User", userId, ct);
 
             return true;

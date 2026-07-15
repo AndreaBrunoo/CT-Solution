@@ -30,8 +30,7 @@ public static class XpoEmployeeMapper
     {
         var domain = new Employee(
             id: xpo.Id,
-            userName: xpo.UserName,
-            idUser: xpo.User.Id
+            userName: xpo.UserName
         );
 
         domain.User = xpo.User == null

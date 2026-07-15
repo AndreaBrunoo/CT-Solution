@@ -76,36 +76,6 @@ public class EmployeeService : IEmployeeService
         });
     }
 
-    public async Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto, CancellationToken ct)
-    {
-        return await _ctx.DoTranAsync(async uow =>
-        {
-            var existing = await uow.Query<XpoEmployee>()
-                .FirstOrDefaultAsync(e =>
-                e.UserName == dto.UserName &&
-                e.User.Id == dto.IdUser,
-                ct);
-
-            if (existing != null)
-            {
-                await _logger.LogFailureAsync("Create", "Employee", null,
-                    $"Employee '{dto.UserName}' already exists", ct);
-                throw new Exception("Employee already exists");
-            }
-
-            var domain = new Employee(
-                id: Guid.NewGuid(),
-                userName: dto.UserName,
-                idUser: dto.IdUser
-            );
-            var xpo = XpoEmployeeMapper.ToXpo(domain, uow);
-
-            await _logger.LogSuccessAsync(uow, "Create", "Employee", domain.Id, ct);
-            
-            return XpoEmployeeMapper.ToDto(domain);
-        });
-    }
-
     public async Task<EmployeeDto?> UpdateAsync(UpdateEmployeeDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>

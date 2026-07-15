@@ -41,14 +41,6 @@ public class EmployeeController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("create")]
-    public async Task<IActionResult> Create(CreateEmployeeDto dto, CancellationToken ct)
-    {
-        await _employeeService.CreateAsync(dto, ct);
-        return Ok(new { message = "Creation successful" });
-    }
-
-    [Authorize]
     [HttpPut("update")]
     public async Task<IActionResult> Update(UpdateEmployeeDto dto, CancellationToken ct)
     {

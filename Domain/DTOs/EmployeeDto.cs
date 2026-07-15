@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Sln.Domain.Entities;
 
 namespace Sln.Domain.DTOs;
 
@@ -8,15 +7,6 @@ public class EmployeeDto
     public Guid Id { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-}
-
-public class CreateEmployeeDto
-{
-    [Required]
-    public string UserName { get; set; } = string.Empty;
-
-    [Required]
-    public Guid IdUser { get; set; }
 }
 
 public class UpdateEmployeeDto

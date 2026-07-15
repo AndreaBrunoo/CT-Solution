@@ -4,12 +4,10 @@ public class Employee
 {
     public Employee(
         Guid id,
-        string userName,
-        Guid idUser)
+        string userName)
     {
         Id = id;
         UserName = userName;
-        IdUser = idUser;
     }
 
     public Guid Id { get; set; }
