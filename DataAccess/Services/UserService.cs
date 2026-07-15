@@ -217,4 +217,66 @@ public class UserService : IUserService
             return user.Roles.Any(r => r.Name == roleName);
         });
     }
+
+    // ---------------------------------------------------------
+    // UPDATE PASSWORD
+    // ---------------------------------------------------------
+    public async Task UpdatePasswordAsync(Guid userId, UpdatePasswordDto dto, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("UpdatePassword", "User", null,
+                    $"User '{userId}' not found", ct);
+                throw new Exception("User not found");
+            }
+
+            var domain = XpoUserMapper.ToDomain(xpo);
+
+            if (!_passwordService.VerifyPassword(dto.CurrentPassword, domain.PasswordHash, domain.PasswordSalt))
+            {
+                await _logger.LogFailureAsync("UpdatePassword", "User", userId,
+                    "Current password is invalid", ct);
+                throw new Exception("Invalid current password");
+            }
+
+            var (newHash, newSalt) = _passwordService.HashPassword(dto.NewPassword);
+
+            xpo.PasswordHash = newHash;
+            xpo.PasswordSalt = newSalt;
+
+            await _logger.LogSuccessAsync(uow, "UpdatePassword", "User", userId, ct);
+
+            return true;
+        });
+    }
+
+    // ---------------------------------------------------------
+    // DELETE USER
+    // ---------------------------------------------------------
+    public async Task DeleteAsync(Guid userId, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Delete", "User", null,
+                    $"User '{userId}' not found", ct);
+                throw new Exception("User not found");
+            }
+
+            xpo.Roles.Reload();
+            foreach (var role in xpo.Roles.ToList())
+                xpo.Roles.Remove(role);
+
+            await uow.DeleteAsync(xpo, ct);
+
+            await _logger.LogSuccessAsync(uow, "Delete", "User", userId, ct);
+
+            return true;
+        });
+    }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Sln.Domain.Interfaces;
 using Sln.Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Sln.Api.Controllers;
 
@@ -15,6 +16,7 @@ public class EmployeeController : ControllerBase
         _employeeService = employeeService;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -22,6 +24,7 @@ public class EmployeeController : ControllerBase
         return employee == null ? NotFound() : Ok(employee);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet()]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
@@ -29,6 +32,7 @@ public class EmployeeController : ControllerBase
         return employee == null ? NotFound() : Ok(employee);
     }
 
+    [Authorize]
     [HttpPost("create")]
     public async Task<IActionResult> Create(CreateEmployeeDto dto, CancellationToken ct)
     {
@@ -36,6 +40,7 @@ public class EmployeeController : ControllerBase
         return Ok(new { message = "Creation successful" });
     }
 
+    [Authorize]
     [HttpPut("update")]
     public async Task<IActionResult> Update(UpdateEmployeeDto dto, CancellationToken ct)
     {
@@ -43,6 +48,7 @@ public class EmployeeController : ControllerBase
         return Ok(new { message = "Update successful" });
     }
 
+    [Authorize]
     [HttpDelete("delete")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

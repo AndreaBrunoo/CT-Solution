@@ -2,6 +2,8 @@ using DevExpress.Xpo;
 using DevExpress.Xpo.DB;
 using Sln.Domain.Interfaces;
 using Sln.DataAccess.Services;
+using Sln.DataAccess.DataContext;
+using Sln.DataAccess.DatabaseSeeder;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
@@ -27,6 +29,7 @@ builder.Services.AddScoped<UnitOfWork>(sp =>
 {
     return new UnitOfWork(XpoDefault.DataLayer);
 });
+builder.Services.AddScoped<XpoDataContext>();
 
 // ------------------------------------------------------------
 // 2. SERVIZI DELLA TUA APPLICAZIONE
@@ -74,6 +77,12 @@ builder.Services.AddAuthorization();
 // ------------------------------------------------------------
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var ctx = scope.ServiceProvider.GetRequiredService<XpoDataContext>();
+    await DatabaseSeeder.SeedAsync(ctx, CancellationToken.None);
+}
 
 if (app.Environment.IsDevelopment())
 {

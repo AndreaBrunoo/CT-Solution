@@ -2,6 +2,7 @@ using DevExpress.Xpo;
 
 namespace Sln.DataAccess.XpoEntities;
 
+[Persistent("Employee")]
 public class XpoEmployee : XPBaseObject
 {
     public XpoEmployee(Session session) : base(session) { }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Sln.Domain.Interfaces;
 using Sln.Domain.DTOs;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Sln.Api.Controllers;
 
@@ -15,6 +17,7 @@ public class WorkLogController : ControllerBase
         _workLogService = workLogService;
     }
 
+    [Authorize(Roles = "Admin, ProjectManager")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -22,6 +25,21 @@ public class WorkLogController : ControllerBase
         return workLog == null ? NotFound() : Ok(workLog);
     }
 
+    [Authorize]
+    [HttpGet("mine")]
+    public async Task<IActionResult> GetMine()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _workLogService.GetMineAsync(Guid.Parse(userId), HttpContext.RequestAborted);
+
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Admin, ProjectManager")]
     [HttpGet()]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
@@ -29,6 +47,7 @@ public class WorkLogController : ControllerBase
         return workLog == null ? NotFound() : Ok(workLog);
     }
 
+    [Authorize]
     [HttpPost("create")]
     public async Task<IActionResult> Create(CreateWorkLogDto dto, CancellationToken ct)
     {
@@ -36,6 +55,7 @@ public class WorkLogController : ControllerBase
         return Ok(new { message = "Creation successful" });
     }
 
+    [Authorize]
     [HttpPut("update")]
     public async Task<IActionResult> Update(UpdateWorkLogDto dto, CancellationToken ct)
     {
@@ -43,6 +63,15 @@ public class WorkLogController : ControllerBase
         return Ok(new { message = "Update successful" });
     }
 
+    [Authorize(Roles = "ProjectManager, Admin")]
+    [HttpPost("{id}/change-status")]
+    public async Task<IActionResult> ChangeStatus(Guid id, Guid newStatusId)
+    {
+        var result = await _workLogService.ChangeStatusAsync(id, newStatusId, HttpContext.RequestAborted);
+        return Ok(result);
+    }
+
+    [Authorize]
     [HttpDelete("delete")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

@@ -32,6 +32,28 @@ public class WorkLogService : IWorkLogService
         });
     }
 
+    public async Task<IReadOnlyList<WorkLogDto>> GetMineAsync(Guid userId, CancellationToken ct)
+    {
+        return await _ctx.DoAsync(async uow =>
+        {
+            var employee = await uow.Query<XpoEmployee>()
+                .FirstOrDefaultAsync(e => e.Id == userId, ct);
+
+            var worklogs = await uow.Query<XpoWorkLog>()
+                .Where(w => w.IdEmployee == employee.Id)
+                .ToListAsync(ct);
+
+            return worklogs
+                .Select(xpo =>
+                {
+                    var domain = XpoWorkLogMapper.ToDomain(xpo);
+
+                    return XpoWorkLogMapper.ToDto(domain);
+                })
+                .ToList();
+        });
+    }
+
     public async Task<IReadOnlyList<WorkLogDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>
@@ -56,7 +78,7 @@ public class WorkLogService : IWorkLogService
         {
             var existing = await uow.Query<XpoWorkLog>()
                 .FirstOrDefaultAsync(w =>
-                    w.Description == dto.Description &&
+                    w.Name == dto.Name &&
                     w.Date == dto.Date &&
                     w.Employee.Id == dto.IdEmployee,
                     ct);
@@ -111,7 +133,6 @@ public class WorkLogService : IWorkLogService
             domain.IdProject = dto.IdProject;
             domain.IdEmployee = dto.IdEmployee;
             domain.IdCategory = dto.IdCategory;
-            domain.IdStatus = dto.IdStatus;
             domain.UpdatedAt = DateTime.UtcNow;
 
             XpoWorkLogMapper.ToXpo(domain, uow);
@@ -121,6 +142,39 @@ public class WorkLogService : IWorkLogService
             return XpoWorkLogMapper.ToDto(domain);
         });
     }
+
+    public async Task<WorkLogDto> ChangeStatusAsync(Guid worklogId, Guid newStatusId, CancellationToken ct)
+    {
+        return await _ctx.DoTranAsync(async uow =>
+        {
+            var xpoWorkLog = await uow.GetObjectByKeyAsync<XpoWorkLog>(worklogId, ct);
+            if (xpoWorkLog == null)
+            {
+                await _logger.LogFailureAsync("ChangeStatus", "Worklog", worklogId,
+                    "Worklog not found", ct);
+                throw new Exception("Worklog not found");
+            }
+
+            var xpoStatus = await uow.GetObjectByKeyAsync<XpoStatus>(newStatusId, ct);
+            if (xpoStatus == null)
+            {
+                await _logger.LogFailureAsync("ChangeStatus", "Status", newStatusId,
+                    "Status not found", ct);
+                throw new Exception("Status not found");
+            };
+
+            var domain = XpoWorkLogMapper.ToDomain(xpoWorkLog);
+
+            domain.IdStatus = newStatusId;
+
+            XpoWorkLogMapper.ToXpo(domain, uow);
+
+            await _logger.LogSuccessAsync(uow, "ChangeStatus", "WorkLog", worklogId, ct);
+
+            return XpoWorkLogMapper.ToDto(domain);
+        });
+    }
+
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {

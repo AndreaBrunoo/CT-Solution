@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Sln.Domain.Interfaces;
 using Sln.Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Sln.Api.Controllers;
 
@@ -15,6 +16,7 @@ public class ProjectController : ControllerBase
         _projectService = projectService;
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -22,6 +24,7 @@ public class ProjectController : ControllerBase
         return project == null ? NotFound() : Ok(project);
     }
 
+    [Authorize]
     [HttpGet()]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
@@ -29,6 +32,7 @@ public class ProjectController : ControllerBase
         return project == null ? NotFound() : Ok(project);
     }
 
+    [Authorize(Roles = "ProjectManager, Admin")]
     [HttpPost("create")]
     public async Task<IActionResult> Create(CreateProjectDto dto, CancellationToken ct)
     {
@@ -36,6 +40,7 @@ public class ProjectController : ControllerBase
         return Ok(new { message = "Creation successful" });
     }
 
+    [Authorize(Roles = "ProjectManager, Admin")]
     [HttpPut("update")]
     public async Task<IActionResult> Update(UpdateProjectDto dto, CancellationToken ct)
     {
@@ -43,6 +48,7 @@ public class ProjectController : ControllerBase
         return Ok(new { message = "Update successful" });
     }
 
+    [Authorize(Roles = "ProjectManager, Admin")]
     [HttpDelete("delete")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

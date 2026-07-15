@@ -2,6 +2,7 @@ using DevExpress.Xpo;
 
 namespace Sln.DataAccess.XpoEntities;
 
+[Persistent("Status")]
 public class XpoStatus : XPBaseObject
 {
     public XpoStatus(Session session) : base(session) { }

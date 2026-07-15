@@ -2,6 +2,7 @@ using DevExpress.Xpo;
 
 namespace Sln.DataAccess.XpoEntities;
 
+[Persistent("Log")]
 public class XpoLog : XPBaseObject
 {
     public XpoLog(Session session) : base(session) { }

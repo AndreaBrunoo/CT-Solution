@@ -25,3 +25,14 @@ public class AuthResponseDto
 {
     public string Token { get; set; } = string.Empty;
 }
+
+public class UpdatePasswordDto
+{
+    public string CurrentPassword { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+public class UpdateUserDto
+{
+    public string Email { get; set; } = string.Empty;
+}

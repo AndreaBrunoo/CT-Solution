@@ -22,4 +22,11 @@ public class XpoDataContext
         await _uow.CommitChangesAsync();
         return result;
     }
+    
+    public async Task DoTranAsync(Func<UnitOfWork, Task> action)
+    {
+        await action(_uow);
+        await _uow.CommitChangesAsync();
+    }
+
 }

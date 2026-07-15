@@ -17,6 +17,7 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto, CancellationToken ct)
     {
@@ -24,6 +25,7 @@ public class UserController : ControllerBase
         return Ok(new { message = "Registration successful" });
     }
 
+    [Authorize]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto, CancellationToken ct)
     {
@@ -85,5 +87,27 @@ public class UserController : ControllerBase
     {
         var result = await _userService.HasRoleAsync(userId, roleName, ct);
         return Ok(new { HasRole = result });
+    }
+
+    [Authorize]
+    [HttpPut("{userId:guid}/password")]
+    public async Task<IActionResult> UpdatePassword(Guid userId, UpdatePasswordDto dto, CancellationToken ct)
+    {
+        var callerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("Admin");
+
+        if (!isAdmin && callerId != userId.ToString())
+            return Forbid();
+
+        await _userService.UpdatePasswordAsync(userId, dto, ct);
+        return Ok(new { Message = "Password updated" });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{userId:guid}")]
+    public async Task<IActionResult> Delete(Guid userId, CancellationToken ct)
+    {
+        await _userService.DeleteAsync(userId, ct);
+        return Ok(new { Message = "User deleted" });
     }
 }

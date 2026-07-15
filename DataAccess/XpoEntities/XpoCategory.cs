@@ -2,6 +2,7 @@ using DevExpress.Xpo;
 
 namespace Sln.DataAccess.XpoEntities;
 
+[Persistent("Category")]
 public class XpoCategory : XPBaseObject
 {
     public XpoCategory(Session session) : base(session) { }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Sln.Domain.Interfaces;
 using Sln.Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Sln.Api.Controllers;
 
@@ -15,6 +16,7 @@ public class RoleController : ControllerBase
         _roleService = roleService;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("create")]
     public async Task<IActionResult> Create(CreateRoleDto dto, CancellationToken ct)
     {
@@ -22,6 +24,7 @@ public class RoleController : ControllerBase
         return Ok(new { message = "Creation successful" });
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet()]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
@@ -29,6 +32,7 @@ public class RoleController : ControllerBase
         return role == null ? NotFound() : Ok(role);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete()]
     public async Task<IActionResult> DeleteRole(Guid roleId, CancellationToken ct)
     {
