@@ -19,9 +19,6 @@ public class XpoRole : XPBaseObject
         set => SetPropertyValue(nameof(Name), ref name, value);
     }
 
-    [Association("Role-Permissions")]
-    public XPCollection<XpoPermission> Permissions => GetCollection<XpoPermission>(nameof(Permissions));
-
     [Association("User-Roles")]
     public XPCollection<XpoUser> Users => GetCollection<XpoUser>(nameof(Users));
 }

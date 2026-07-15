@@ -16,9 +16,9 @@ public class RoleController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> Create(string name, CancellationToken ct)
+    public async Task<IActionResult> Create(CreateRoleDto dto, CancellationToken ct)
     {
-        await _roleService.CreateRoleAsync(name, ct);
+        await _roleService.CreateRoleAsync(dto, ct);
         return Ok(new { message = "Creation successful" });
     }
 

@@ -32,7 +32,6 @@ public class XpoEmployee : XPBaseObject
     // -----------------------------
 
     [Association("User-Employees")]
-    [Persistent]
     public XpoUser User
     {
         get => user;

@@ -8,26 +8,36 @@ namespace Sln.DataAccess.Services;
 
 public class JwtService
 {
-    private const string SecretKey = "super-secret-key-please-change-me";
-    private const string Issuer = "sln-api";
-    private const string Audience = "sln-client";
+    private readonly IConfiguration _config;
+
+    public JwtService(IConfiguration config)
+    {
+        _config = config;
+    }
 
     public string GenerateToken(User user)
     {
-        var key = Encoding.UTF8.GetBytes(SecretKey);
+        var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(key),
             SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email)
         };
 
+        // Aggiunta ruoli
+        if (user.Roles != null)
+        {
+            foreach (var role in user.Roles)
+                claims.Add(new Claim(ClaimTypes.Role, role.Name));
+        }
+
         var token = new JwtSecurityToken(
-            issuer: Issuer,
-            audience: Audience,
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: credentials);

@@ -2,6 +2,8 @@ using DevExpress.Xpo;
 using DevExpress.Xpo.DB;
 using Sln.Domain.Interfaces;
 using Sln.DataAccess.Services;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +28,6 @@ builder.Services.AddScoped<UnitOfWork>(sp =>
     return new UnitOfWork(XpoDefault.DataLayer);
 });
 
-// Accesso al HttpContext (usato dal logger azioni per leggere l'utente dal JWT)
-builder.Services.AddHttpContextAccessor();
-
 // ------------------------------------------------------------
 // 2. SERVIZI DELLA TUA APPLICAZIONE
 // ------------------------------------------------------------
@@ -42,8 +41,6 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
-builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IActionLogger, ActionLogger>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<JwtService>();
@@ -52,6 +49,25 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+            )
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // ------------------------------------------------------------
 // 3. PIPELINE HTTP
@@ -65,6 +81,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseHttpsRedirection();
 app.MapControllers();
 

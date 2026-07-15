@@ -54,7 +54,6 @@ public class XpoProject : XPBaseObject
     // -----------------------------
 
     [Association("Company-Projects")]
-    [Persistent]
     public XpoCompany? Company
     {
         get => company;

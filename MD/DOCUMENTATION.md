@@ -11,17 +11,11 @@
 ## 1 · Schema del Database (relazioni)
 
 ```
-                                 ┌──────────────┐
-                                 │  Permission  │
-                                 │  Id (PK)     │
-                                 │  Code        │
-                                 └──────┬───────┘
-                                        │  N : M  (Role-Permissions)
-                                        │
-┌──────────────┐   N : M (User-Roles)  │         ┌──────────────┐
-│     User     ├───────────────────────►┤         │     Role     │
-│  Id (PK)     │                       │         │  Id (PK)     │
-│  Email       │                       └────────►│  Name        │
+                                        
+┌──────────────┐   N : M (User-Roles)            ┌──────────────┐
+│     User     ├────────────────────────────────►│     Role     │
+│  Id (PK)     │                                 │    Id (PK)   │
+│  Email       │                                 │    Name      │
 │  PasswordHash│                                 └──────┬───────┘
 │  PasswordSalt│                                        │
 └──────┬───────┘                                        │  1 : N  (User-Roles)
@@ -73,7 +67,6 @@
 | Relazione | Tipo | Lato "1" | Lato "N" | Association name (XPO) |
 |---|---|---|---|---|
 | User ↔ Role | N : M | User | Role | `User-Roles` |
-| Role ↔ Permission | N : M | Role | Permission | `Role-Permissions` |
 | User → Employee | 1 : N | User | Employee | `User-Employees` |
 | Employee → WorkLog | 1 : N | Employee | WorkLog | `Employee-WorkLogs` |
 | Project → WorkLog | 1 : N | Project | WorkLog | `Project-WorkLogs` |
@@ -108,27 +101,12 @@ var user = new User(
 ### 2.2 `Role`
 **File:** `Domain/Entities/Role.cs` · **Xpo:** `XpoRole.cs`
 
-Ruolo logico (`Admin`, `Manager`, `User`, …) al quale sono agganciate le `Permission`. Un utente riceve permessi **solo tramite il ruolo** (controllo a due livelli: ruolo → permessi). N : M sia verso `User` che verso `Permission`.
+Ruolo logico (`Admin`, `Manager`, `User`, …) **solo tramite il ruolo** (controllo su un livello: ruolo). N : M verso `User`.
 
-**Quando si usa:** creare ruoli (`POST /api/role/create`), comporre set di permessi (`POST /api/roles/{roleId}/permissions/{permissionId}`), verificare l'appartenenza.
+**Quando si usa:** creare ruoli (`POST /api/role/create`).
 
 ```csharp
 var role = new Role(Guid.NewGuid(), "Manager");
-role.Permissions.Add(worklogWritePermission);
-```
-
----
-
-### 2.3 `Permission`
-**File:** `Domain/Entities/Permission.cs` · **Xpo:** `XpoPermission.cs`
-
-Permesso granulare espresso da un `Code` stringa (es. `"WorkLog.Create"`, `"Project.Delete"`). Non è legato a un endpoint: è un *token* che controller e service interpretano per abilitare o negare azioni. Assegnato ai `Role`, mai direttamente all'utente.
-
-**Quando si usa:** creare la lista di codici di permesso (`POST /api/permission/create`), distribuirli nei ruoli, controllare se un utente può fare qualcosa (`GET /api/user/{userId}/permissions/check?permissionCode=...`).
-
-```csharp
-var p = new Permission(Guid.NewGuid(), "WorkLog.Create");
-if (await _userService.HasPermissionAsync(userId, "WorkLog.Create", ct)) { ... }
 ```
 
 ---
@@ -244,12 +222,10 @@ var wl = new WorkLog(
 
 | Service | Responsabilità |
 |---|---|
-| `UserService` | Registrazione (con hash password + ruolo "User" di default), login (verifica + JWT), CRUD, assegnazione/rimozione ruoli, check ruolo/permesso. |
+| `UserService` | Registrazione (con hash password + ruolo "User" di default), login (verifica + JWT), CRUD, assegnazione/rimozione ruoli. |
 | `JwtService` | Genera il JWT (HS256, scadenza 2h) con claim `sub` = userId e `email`. Chiave hard-coded `super-secret-key-please-change-me` ⚠️. |
 | `PasswordService` | PBKDF2-SHA256, salt 32 byte random, 100 000 iterazioni. |
 | `RoleService` | CRUD dei ruoli. |
-| `RolePermissionService` | Assegna/rimuove permessi a un ruolo, elenca permessi, check. |
-| `PermissionService` | CRUD dei permessi. |
 | `CompanyService` | CRUD aziende. |
 | `ProjectService` | CRUD progetti. |
 | `EmployeeService` | CRUD dipendenti. |
@@ -293,9 +269,6 @@ Rimuove un ruolo da un utente.
 ### 5.8 `GET /api/user/{userId}/roles/check?roleName=Admin`
 Restituisce `{ HasRole: bool }`.
 
-### 5.9 `GET /api/user/{userId}/permissions/check?permissionCode=WorkLog.Create`
-Restituisce `{ HasPermission: bool }` (verifica transitiva via ruoli).
-
 ---
 
 ### 5.10 `POST /api/role/create?name=Manager`
@@ -306,31 +279,6 @@ Lista ruoli.
 
 ### 5.12 `DELETE /api/role?roleId={guid}`
 Elimina un ruolo.
-
----
-
-### 5.13 `POST /api/permission/create?code=WorkLog.Create`
-Crea un permesso (code da query string).
-
-### 5.14 `GET /api/permission`
-Lista permessi.
-
-### 5.15 `DELETE /api/permission?permissionId={guid}`
-Elimina un permesso.
-
----
-
-### 5.16 `POST /api/roles/{roleId}/permissions/{permissionId}`
-Assegna un permesso a un ruolo.
-
-### 5.17 `DELETE /api/roles/{roleId}/permissions/{permissionId}`
-Rimuove un permesso da un ruolo.
-
-### 5.18 `GET /api/roles/{roleId}/permissions/check?permissionCode=WorkLog.Create`
-Verifica se il ruolo possiede un permesso.
-
-### 5.19 `GET /api/roles/{roleId}/permissions`
-Elenca i permessi di un ruolo.
 
 ---
 
@@ -419,4 +367,3 @@ Crea un worklog.
 - **Auth lato server:** il JWT viene generato ma **non c'è ancora un middleware `[Authorize]`** sui controller. Da aggiungere prima dell'uso in produzione.
 - **Segreto JWT** hard-coded in `JwtService.cs` — spostare in `appsettings.json` con `IConfiguration`.
 - **Migrations:** lo schema è autogenerato da XPO (`AutoCreateOption.DatabaseAndSchema`). Adatto a sviluppo; per produzione preferire migration esplicite.
-- **Permessi granulari vs ruoli hard-coded:** le `Permission` esistono ma non sono ancora applicate con attributi/filter; oggi la matrice ruolo→permesso è solo dichiarativa. L'endpoint `HasPermissionAsync` è già pronto per essere interrogato.

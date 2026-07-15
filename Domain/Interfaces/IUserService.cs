@@ -12,5 +12,4 @@ public interface IUserService
     Task AssignRoleAsync(Guid userId, Guid roleId, CancellationToken ct);
     Task RemoveRoleAsync(Guid userId, Guid roleId, CancellationToken ct);
     Task<bool> HasRoleAsync(Guid userId, string roleName, CancellationToken ct);
-    Task<bool> HasPermissionAsync(Guid userId, string permissionCode, CancellationToken ct);
 }

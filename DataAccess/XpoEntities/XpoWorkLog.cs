@@ -22,7 +22,7 @@ public class XpoWorkLog : XPBaseObject
     [Persistent]
     public string Name
     {
-        get => description;
+        get => name;
         set => SetPropertyValue(nameof(Name), ref name, value);
     }
 
@@ -116,7 +116,6 @@ public class XpoWorkLog : XPBaseObject
     // -----------------------------
 
     [Association("Project-WorkLogs")]
-    [Persistent]
     public XpoProject Project
     {
         get => project;
@@ -125,7 +124,6 @@ public class XpoWorkLog : XPBaseObject
     private XpoProject project;
 
     [Association("Employee-WorkLogs")]
-    [Persistent]
     public XpoEmployee Employee
     {
         get => employee;
@@ -134,7 +132,6 @@ public class XpoWorkLog : XPBaseObject
     private XpoEmployee employee;
 
     [Association("Category-WorkLogs")]
-    [Persistent]
     public XpoCategory Category
     {
         get => category;
@@ -143,7 +140,6 @@ public class XpoWorkLog : XPBaseObject
     private XpoCategory category;
 
     [Association("Status-WorkLogs")]
-    [Persistent]
     public XpoStatus Status
     {
         get => status;

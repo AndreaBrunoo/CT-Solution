@@ -217,20 +217,4 @@ public class UserService : IUserService
             return user.Roles.Any(r => r.Name == roleName);
         });
     }
-
-    // ---------------------------------------------------------
-    // CHECK PERMISSION
-    // ---------------------------------------------------------
-    public async Task<bool> HasPermissionAsync(Guid userId, string permissionCode, CancellationToken ct)
-    {
-        return await _ctx.DoAsync(async uow =>
-        {
-            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
-            if (user == null) return false;
-
-            return user.Roles
-                .SelectMany(r => r.Permissions)
-                .Any(p => p.Code == permissionCode);
-        });
-    }
 }
