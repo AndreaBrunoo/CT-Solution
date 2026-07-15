@@ -25,7 +25,6 @@ public class UserController : ControllerBase
         return Ok(new { message = "Registration successful" });
     }
 
-    [Authorize]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto, CancellationToken ct)
     {

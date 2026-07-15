@@ -21,6 +21,7 @@ public class UserService : IUserService
         _ctx = new XpoDataContext(uow);
         _passwordService = passwordService;
         _jwtService = jwtService;
+        _logger = logger;
     }
 
     public async Task RegisterAsync(RegisterDto dto, CancellationToken ct)
@@ -78,11 +79,11 @@ public class UserService : IUserService
             var xpo = await uow.Query<XpoUser>()
                 .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-            if (xpo != null)
+            if (xpo == null)
             {
                 await _logger.LogFailureAsync("Login", "User", null,
-                    $"User '{dto.Email}' already exists", ct);
-                throw new Exception("User already exists");
+                    $"User '{dto.Email}' not exists", ct);
+                throw new Exception("User not exists");
             }
 
             var domain = XpoUserMapper.ToDomain(xpo);

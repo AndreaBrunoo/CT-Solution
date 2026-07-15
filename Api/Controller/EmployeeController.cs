@@ -16,7 +16,7 @@ public class EmployeeController : ControllerBase
         _employeeService = employeeService;
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -24,12 +24,20 @@ public class EmployeeController : ControllerBase
         return employee == null ? NotFound() : Ok(employee);
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpGet()]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
         var employee = await _employeeService.GetAllAsync(ct);
         return employee == null ? NotFound() : Ok(employee);
+    }
+
+    [Authorize]
+    [HttpGet("by-project/{projectId:guid}")]
+    public async Task<IActionResult> GetByProject(Guid projectId, CancellationToken ct)
+    {
+        var employees = await _employeeService.GetByProjectIdAsync(projectId, ct);
+        return employees == null ? NotFound(new { Message = "Project not found" }) : Ok(employees);
     }
 
     [Authorize]

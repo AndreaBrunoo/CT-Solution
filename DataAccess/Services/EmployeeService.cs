@@ -49,6 +49,33 @@ public class EmployeeService : IEmployeeService
         });
     }
 
+    public async Task<IReadOnlyList<EmployeeDto>?> GetByProjectIdAsync(Guid projectId, CancellationToken ct)
+    {
+        return await _ctx.DoAsync(async uow =>
+        {
+            var project = await uow.GetObjectByKeyAsync<XpoProject>(projectId, ct);
+            if (project == null)
+                return null;
+
+            var workLogs = await uow.Query<XpoWorkLog>()
+                .Where(w => w.IdProject == projectId)
+                .ToListAsync(ct);
+
+            var employees = workLogs
+                .Select(w => w.Employee)
+                .Where(e => e != null)
+                .Distinct()
+                .Select(xpo =>
+                {
+                    var domain = XpoEmployeeMapper.ToDomain(xpo);
+                    return XpoEmployeeMapper.ToDto(domain);
+                })
+                .ToList();
+
+            return employees;
+        });
+    }
+
     public async Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto, CancellationToken ct)
     {
         return await _ctx.DoTranAsync(async uow =>
