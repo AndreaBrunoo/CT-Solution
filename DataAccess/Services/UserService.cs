@@ -164,7 +164,7 @@ public class UserService : IUserService
         await _ctx.DoTranAsync(async uow =>
         {
             var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
-            if (user != null)
+            if (user == null)
             {
                 await _logger.LogFailureAsync("AssignRole", "User", null,
                     $"User '{roleId}' User not found", ct);
@@ -172,7 +172,7 @@ public class UserService : IUserService
             }
 
             var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
-            if (role != null)
+            if (role == null)
             {
                 await _logger.LogFailureAsync("AssignRole", "Role", null,
                     $"Role '{roleId}' Role not found", ct);
@@ -196,7 +196,7 @@ public class UserService : IUserService
         await _ctx.DoTranAsync(async uow =>
         {
             var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
-            if (user != null)
+            if (user == null)
             {
                 await _logger.LogFailureAsync("RemoveRole", "User", null,
                     $"User '{roleId}' User not found", ct);
@@ -204,7 +204,7 @@ public class UserService : IUserService
             }
 
             var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
-            if (role != null)
+            if (role == null)
             {
                 await _logger.LogFailureAsync("RemoveRole", "Role", null,
                     $"Role '{roleId}' Role not found", ct);

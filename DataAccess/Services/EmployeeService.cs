@@ -32,6 +32,21 @@ public class EmployeeService : IEmployeeService
         });
     }
 
+    public async Task<EmployeeDto?> GetByUserIdAsync(Guid userId, CancellationToken ct)
+    {
+        return await _ctx.DoAsync(async uow =>
+        {
+            var xpo = await uow.Query<XpoEmployee>()
+                .FirstOrDefaultAsync(e => e.User != null && e.User.Id == userId, ct);
+
+            if (xpo == null) return null;
+
+            var domain = XpoEmployeeMapper.ToDomain(xpo);
+
+            return XpoEmployeeMapper.ToDto(domain);
+        });
+    }
+
     public async Task<IReadOnlyList<EmployeeDto>?> GetAllAsync(CancellationToken ct)
     {
         return await _ctx.DoAsync(async uow =>

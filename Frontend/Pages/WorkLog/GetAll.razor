@@ -1,0 +1,58 @@
+@page "/worklog"
+@inject Frontend.Services.WorkLogService WorkLogService
+
+<PageHeader Title="WorkLog - Tutti" Subtitle="Elenco globale dei worklog (visibile ad Admin/PM)." />
+
+@if (worklogs == null)
+{
+    <p>Caricamento...</p>
+}
+else if (!worklogs.Any())
+{
+    <p>Nessun worklog trovato.</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Dipendente</th>
+                <th>Data</th>
+                <th>Progetto</th>
+                <th>Ore</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var w in worklogs)
+            {
+                <tr>
+                    <td>@(w.EmployeeName ?? "-")</td>
+                    <td>@w.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@(w.ProjectName ?? "-")</td>
+                    <td>@w.HoursCounter</td>
+                    <td>
+                        <a class="btn btn-sm btn-secondary" href="/worklog/details/@w.Id">Dettagli</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Frontend.Dtos.WorkLog.WorkLogDto>? worklogs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            worklogs = await WorkLogService.GetAllAsync();
+            worklogs ??= new List<Frontend.Dtos.WorkLog.WorkLogDto>();
+        }
+        catch
+        {
+            worklogs = new List<Frontend.Dtos.WorkLog.WorkLogDto>();
+        }
+    }
+}

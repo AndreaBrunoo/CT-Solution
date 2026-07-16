@@ -1,0 +1,21 @@
+@* Semplice spinner riutilizzabile *@
+<div class="d-flex align-items-center">
+    <div class="spinner-border" role="status" style="width:@Size;height:@Size;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <div class="ms-2">@Message</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Message { get; set; } = "Caricamento...";
+
+    /// <summary>
+    /// CSS size (es. "2rem", "24px")
+    /// </summary>
+    [Parameter]
+    public string Size { get; set; } = "1.5rem";
+}

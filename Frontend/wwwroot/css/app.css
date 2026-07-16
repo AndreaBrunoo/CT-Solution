@@ -1,0 +1,39 @@
+html, body {
+    background: #0f172a;
+    color: #e2e8f0;
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.home-redirect {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+/* KPI card styles */
+.kpi-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid rgba(148,163,184,0.08);
+    color: var(--text-primary, #e2e8f0);
+}
+.kpi-card .card-body { display:flex; align-items:center; gap:1rem; }
+.kpi-card { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 6px 18px rgba(2,6,23,0.6); }
+.kpi-icon {
+    width:56px; height:56px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+}
+.kpi-icon.bg-blue { background: linear-gradient(135deg,#38bdf8,#6366f1); color:#08122a }
+.kpi-icon.bg-green { background: linear-gradient(135deg,#10b981,#06b48a); color:#022016 }
+.kpi-icon.bg-violet { background: linear-gradient(135deg,#8b5cf6,#6366f1); color:#0f0720 }
+.kpi-icon.bg-yellow { background: linear-gradient(135deg,#f59e0b,#fbbf24); color:#2a1a00 }
+.kpi-value { font-weight:700; font-size:1.5rem; }
+.kpi-label { color: #cbd5e1; font-size:0.9rem; }

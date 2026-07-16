@@ -1,0 +1,33 @@
+@* Componente per stato vuoto con azione opzionale *@
+<div class="text-center py-5">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <div class="mb-3" style="font-size:2.5rem">@((MarkupString)Icon)</div>
+    }
+    <h4>@Title</h4>
+    @if (!string.IsNullOrEmpty(Description))
+    {
+        <div class="text-muted mb-3">@Description</div>
+    }
+    @if (ActionContent != null)
+    {
+        <div>@ActionContent</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Nessun elemento";
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// HTML icon (es. &lt;i class="bi bi-plus-circle"&gt;&lt;/i&gt;)
+    /// </summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment? ActionContent { get; set; }
+}

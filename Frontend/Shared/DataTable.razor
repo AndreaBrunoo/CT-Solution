@@ -1,0 +1,47 @@
+@* Componente DataTable generico. HeaderTemplate deve produrre <tr><th>..</th></tr>, RowTemplate produce <td>..</td> *@
+@typeparam TItem
+
+@if (Items == null)
+{
+    <p>Caricamento...</p>
+}
+else if (!Items.Any())
+{
+    <p>@EmptyMessage</p>
+}
+else
+{
+    <table class="table table-striped table-sm">
+        <thead>
+            @if (HeaderTemplate != null)
+            {
+                @HeaderTemplate
+            }
+        </thead>
+        <tbody>
+            @foreach (var item in Items)
+            {
+                <tr>
+                    @if (RowTemplate != null)
+                    {
+                        @RowTemplate(item)
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public IEnumerable<TItem>? Items { get; set; }
+
+    [Parameter]
+    public RenderFragment? HeaderTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem>? RowTemplate { get; set; }
+
+    [Parameter]
+    public string EmptyMessage { get; set; } = "Nessun dato disponibile";
+}

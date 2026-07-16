@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Sln.Domain.Interfaces;
 using Sln.Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
 
 namespace Sln.Api.Controllers;
 
@@ -29,6 +31,18 @@ public class EmployeeController : ControllerBase
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
         var employee = await _employeeService.GetAllAsync(ct);
+        return employee == null ? NotFound() : Ok(employee);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetProfile(CancellationToken ct)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var employee = await _employeeService.GetByUserIdAsync(userId, ct);
         return employee == null ? NotFound() : Ok(employee);
     }
 

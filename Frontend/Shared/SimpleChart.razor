@@ -1,0 +1,25 @@
+@inject IJSRuntime JS
+<canvas id="@CanvasId" width="400" height="160"></canvas>
+
+@code {
+    [Parameter]
+    public string CanvasId { get; set; } = Guid.NewGuid().ToString();
+
+    [Parameter]
+    public string[] Labels { get; set; } = Array.Empty<string>();
+
+    [Parameter]
+    public int[] Data { get; set; } = Array.Empty<int>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("dashboard.initChart", CanvasId, Labels, Data);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("dashboard.updateChart", CanvasId, Labels, Data);
+        }
+    }
+}

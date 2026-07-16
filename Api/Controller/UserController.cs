@@ -32,14 +32,6 @@ public class UserController : ControllerBase
         return Ok(new AuthResponseDto { Token = token });
     }
 
-    [Authorize]
-    [HttpGet("me")]
-    public IActionResult GetProfile()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Ok(new { UserId = userId });
-    }
-
     [Authorize(Roles = "Admin")]
     [HttpGet()]
     public async Task<IActionResult> GetAll(CancellationToken ct)
@@ -63,7 +55,6 @@ public class UserController : ControllerBase
         var user = await _userService.GetByEmailAsync(email, ct);
         return user == null ? NotFound() : Ok(user);
     }
-
     [Authorize(Roles = "Admin")]
     [HttpPost("{userId:guid}/roles/{roleId:guid}")]
     public async Task<IActionResult> AssignRole(Guid userId, Guid roleId, CancellationToken ct)
@@ -71,6 +62,7 @@ public class UserController : ControllerBase
         await _userService.AssignRoleAsync(userId, roleId, ct);
         return Ok(new { Message = "Role assigned" });
     }
+
 
     [Authorize(Roles = "Admin")]
     [HttpDelete("{userId:guid}/roles/{roleId:guid}")]

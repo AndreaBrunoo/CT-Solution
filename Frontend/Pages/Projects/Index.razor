@@ -1,0 +1,56 @@
+@page "/projects"
+@inject Frontend.Services.ProjectService ProjectService
+
+<PageHeader Title="Progetti" Subtitle="Lista dei progetti"> </PageHeader>
+@if (projects == null)
+{
+    <p>Caricamento...</p>
+}
+else if (!projects.Any())
+{
+    <p>Nessun progetto trovato.</p>
+}
+else
+{
+    <a class="btn btn-primary mb-3" href="/projects/form">Nuovo progetto</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Azienda</th>
+                <th>Tariffa</th>
+                <th>#WorkLog</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in projects)
+            {
+                <tr>
+                    <td>@p.Name</td>
+                    <td>@(p.CompanyName ?? "-")</td>
+                    <td>@(p.HourlyRate?.ToString("C") ?? "-")</td>
+                    <td>-</td>
+                    <td><a class="btn btn-sm btn-secondary" href="/projects/@p.Id">Dettagli</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Frontend.Dtos.Project.ProjectDto>? projects;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            projects = await ProjectService.GetAllAsync();
+            projects ??= new List<Frontend.Dtos.Project.ProjectDto>();
+        }
+        catch
+        {
+            projects = new List<Frontend.Dtos.Project.ProjectDto>();
+        }
+    }
+}

@@ -28,7 +28,7 @@ public class WorkLogService : IWorkLogService
 
             var domain = XpoWorkLogMapper.ToDomain(xpo);
 
-            return XpoWorkLogMapper.ToDto(domain);
+            return XpoWorkLogMapper.ToDto(domain, xpo);
         });
     }
 
@@ -36,19 +36,29 @@ public class WorkLogService : IWorkLogService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var employee = await uow.Query<XpoEmployee>()
-                .FirstOrDefaultAsync(e => e.Id == userId, ct);
+            // 1. Trovo lo User dal token
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (user == null)
+                return new List<WorkLogDto>();
 
+            // 2. Trovo l'Employee associato allo User
+            var employee = await uow.Query<XpoEmployee>()
+                .FirstOrDefaultAsync(e => e.User.Id == user.Id, ct);
+
+            if (employee == null)
+                return new List<WorkLogDto>();
+
+            // 3. Trovo i WorkLog dell'Employee
             var worklogs = await uow.Query<XpoWorkLog>()
                 .Where(w => w.IdEmployee == employee.Id)
                 .ToListAsync(ct);
 
+            // 4. Mappo anche le navigation
             return worklogs
                 .Select(xpo =>
                 {
                     var domain = XpoWorkLogMapper.ToDomain(xpo);
-
-                    return XpoWorkLogMapper.ToDto(domain);
+                    return XpoWorkLogMapper.ToDto(domain, xpo);
                 })
                 .ToList();
         });
@@ -66,7 +76,7 @@ public class WorkLogService : IWorkLogService
             {
                 var domain = XpoWorkLogMapper.ToDomain(xpo);
 
-                return XpoWorkLogMapper.ToDto(domain);
+                return XpoWorkLogMapper.ToDto(domain, xpo);
             })
             .ToList();
         });
@@ -108,7 +118,7 @@ public class WorkLogService : IWorkLogService
 
             await _logger.LogSuccessAsync(uow, "Create", "Worklog", domain.Id, ct);
 
-            return XpoWorkLogMapper.ToDto(domain);
+            return XpoWorkLogMapper.ToDto(domain, xpo);
         });
     }
 
@@ -139,7 +149,7 @@ public class WorkLogService : IWorkLogService
 
             await _logger.LogSuccessAsync(uow, "Update", "Worklog", domain.Id, ct);
 
-            return XpoWorkLogMapper.ToDto(domain);
+            return XpoWorkLogMapper.ToDto(domain, xpo);
         });
     }
 
@@ -161,17 +171,18 @@ public class WorkLogService : IWorkLogService
                 await _logger.LogFailureAsync("ChangeStatus", "Status", newStatusId,
                     "Status not found", ct);
                 throw new Exception("Status not found");
-            };
+            }
+            ;
 
             var domain = XpoWorkLogMapper.ToDomain(xpoWorkLog);
 
             domain.IdStatus = newStatusId;
 
-            XpoWorkLogMapper.ToXpo(domain, uow);
+            var xpo = XpoWorkLogMapper.ToXpo(domain, uow);
 
             await _logger.LogSuccessAsync(uow, "ChangeStatus", "WorkLog", worklogId, ct);
 
-            return XpoWorkLogMapper.ToDto(domain);
+            return XpoWorkLogMapper.ToDto(domain, xpo);
         });
     }
 

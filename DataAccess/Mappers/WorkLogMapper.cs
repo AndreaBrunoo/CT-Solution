@@ -51,7 +51,7 @@ public static class XpoWorkLogMapper
         );
     }
 
-    public static WorkLogDto ToDto(WorkLog domain)
+    public static WorkLogDto ToDto(WorkLog domain, XpoWorkLog xpo)
     {
         return new WorkLogDto
         {
@@ -66,10 +66,11 @@ public static class XpoWorkLogMapper
             IdEmployee = domain.IdEmployee,
             IdCategory = domain.IdCategory,
             IdStatus = domain.IdStatus,
-            ProjectName = domain.Project?.Name,
-            EmployeeName = domain.Employee?.UserName,
-            CategoryName = domain.Category?.Name,
-            StatusName = domain.Status?.Name
+
+            ProjectName = xpo.Project?.Name,
+            EmployeeName = xpo.Employee?.UserName,
+            CategoryName = xpo.Category?.Name,
+            StatusName = xpo.Status?.Name
         };
     }
 }
