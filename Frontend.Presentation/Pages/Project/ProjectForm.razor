@@ -1,0 +1,115 @@
+@page "/projects/form"
+@page "/projects/form/{Id:guid}"
+
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Project
+@using Frontend.Domain.Dtos.Company
+
+@inject IProjectService ProjectService
+@inject ICompanyService CompanyService
+@inject NavigationManager Nav
+
+<div class="form-container">
+    <h2 class="title">@((Id.HasValue ? "Modifica Progetto" : "Nuovo Progetto"))</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else
+    {
+        <EditForm Model="@Model" OnValidSubmit="@SaveAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label>Nome</label>
+                <InputText class="form-control" @bind-Value="Model.Name" />
+            </div>
+
+            <div class="form-group">
+                <label>Tariffa oraria (€)</label>
+                <InputNumber class="form-control" @bind-Value="Model.HourlyRate" />
+            </div>
+
+            <div class="form-group">
+                <label>Azienda</label>
+                <InputSelect class="form-control" @bind-Value="Model.IdCompany">
+                    <option value="">-- Seleziona azienda --</option>
+                    @foreach (var c in Companies)
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="actions">
+                <button class="btn-save" type="submit">Salva</button>
+                <button class="btn-back" @onclick="GoBack">Annulla</button>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private UpdateProjectDto Model = new();
+    private bool IsLoading = true;
+
+    private List<CompanyDto> Companies = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carica aziende per dropdown
+        Companies = (await CompanyService.GetAllAsync())?.ToList() ?? new List<CompanyDto>();
+
+        if (Id.HasValue)
+        {
+            var existing = await ProjectService.GetByIdAsync(Id.Value);
+
+            if (existing != null)
+            {
+                Model = new UpdateProjectDto
+                {
+                    Id = existing.Id,
+                    Name = existing.Name,
+                    HourlyRate = existing.HourlyRate,
+                    IdCompany = existing.IdCompany
+                };
+            }
+        }
+        else
+        {
+            Model = new UpdateProjectDto
+            {
+                Id = Guid.NewGuid()
+            };
+        }
+
+        IsLoading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (Id.HasValue)
+        {
+            await ProjectService.UpdateAsync(Model);
+        }
+        else
+        {
+            var createDto = new CreateProjectDto
+            {
+                Name = Model.Name,
+                HourlyRate = Model.HourlyRate,
+                IdCompany = Model.IdCompany
+            };
+
+            await ProjectService.CreateAsync(createDto);
+        }
+
+        Nav.NavigateTo("/projects");
+    }
+
+    private void GoBack() => Nav.NavigateTo("/projects");
+}

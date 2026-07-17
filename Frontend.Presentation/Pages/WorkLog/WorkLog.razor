@@ -1,0 +1,81 @@
+@using Frontend.Domain.Contracts;
+@using Frontend.Domain.Dtos.WorkLog;
+
+@page "/worklog"
+@inject IWorkLogService WorkLogService
+@inject NavigationManager Nav
+
+<div class="worklog-container">
+    <h2 class="title">I miei WorkLog</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Data is not null)
+    {
+        <div class="table-wrapper">
+            <table class="worklog-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Progetto</th>
+                        <th>Categoria</th>
+                        <th>Ore</th>
+                        <th>Stato</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var w in Data)
+                    {
+                        <tr>
+                            <td>@w.Date.ToString("dd/MM/yyyy")</td>
+                            <td>@w.ProjectName</td>
+                            <td>@w.CategoryName</td>
+                            <td>@w.HoursCounter</td>
+                            <td>@w.StatusName</td>
+                            <td>
+                                <button class="btn-details" @onclick="() => GoToDetails(w.Id)">
+                                    Dettagli
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<WorkLogDto>? Data;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Data = await WorkLogService.GetMineAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void GoToDetails(Guid id)
+    {
+        Nav.NavigateTo($"/worklog/details/{id}");
+    }
+}

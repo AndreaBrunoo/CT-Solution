@@ -1,0 +1,85 @@
+@using Frontend.Domain.Contracts;
+@using Frontend.Domain.Dtos.WorkLog;
+
+@page "/worklog/details/{Id:guid}"
+@inject IWorkLogService WorkLogService
+@inject NavigationManager Nav
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private WorkLogDto? Data;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Data = await WorkLogService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/worklog");
+    private void Edit() => Nav.NavigateTo($"/worklog/form/{Id}");
+}
+<div class="details-container">
+    <h2 class="title">Dettagli WorkLog</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Data is not null)
+    {
+        <div class="details-card">
+
+            <div class="details-row">
+                <span class="label">Data:</span>
+                <span class="value">@Data.Date.ToString("dd/MM/yyyy")</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Progetto:</span>
+                <span class="value">@Data.ProjectName</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Categoria:</span>
+                <span class="value">@Data.CategoryName</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Ore:</span>
+                <span class="value">@Data.HoursCounter h</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Stato:</span>
+                <span class="value status">@Data.StatusName</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Note:</span>
+                <span class="value">@Data.Description</span>
+            </div>
+
+            <div class="actions">
+                <button class="btn-back" @onclick="GoBack">← Torna indietro</button>
+                <button class="btn-edit" @onclick="Edit">Modifica</button>
+            </div>
+        </div>
+    }
+</div>

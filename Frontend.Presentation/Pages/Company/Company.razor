@@ -1,0 +1,84 @@
+@page "/companies"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Company
+@inject ICompanyService CompanyService
+@inject NavigationManager Nav
+
+<div class="company-container">
+    <h2 class="title">Aziende</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Companies is not null)
+    {
+        <div class="actions-top">
+            <button class="btn-create" @onclick="Create">+ Nuova Azienda</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="company-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Tariffa oraria</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var c in Companies)
+                    {
+                        <tr>
+                            <td>@c.Name</td>
+                            <td>@c.Email</td>
+                            <td>
+                                <button class="btn-details" @onclick="() => Details(c.Id)">
+                                    Dettagli
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<CompanyDto>? Companies;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Companies = (await CompanyService.GetAllAsync())?.ToList() ?? new List<CompanyDto>();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void Details(Guid id)
+    {
+        Nav.NavigateTo($"/companies/details/{id}");
+    }
+
+    private void Create()
+    {
+        Nav.NavigateTo("/companies/form");
+    }
+}

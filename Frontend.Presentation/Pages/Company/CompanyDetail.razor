@@ -1,0 +1,74 @@
+@page "/companies/details/{Id:guid}"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Company
+@inject ICompanyService CompanyService
+@inject NavigationManager Nav
+
+<div class="details-container">
+    <h2 class="title">Dettaglio Azienda</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Company is not null)
+    {
+        <div class="details-card">
+
+            <div class="details-row">
+                <span class="label">Nome:</span>
+                <span class="value">@Company.Name</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Email:</span>
+                <span class="value">@Company.Email</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Tariffa oraria:</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">ID:</span>
+                <span class="value">@Company.Id</span>
+            </div>
+
+            <div class="actions">
+                <button class="btn-back" @onclick="GoBack">← Indietro</button>
+                <button class="btn-edit" @onclick="Edit">Modifica</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CompanyDto? Company;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Company = await CompanyService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/companies");
+    private void Edit() => Nav.NavigateTo($"/companies/form/{Id}");
+}

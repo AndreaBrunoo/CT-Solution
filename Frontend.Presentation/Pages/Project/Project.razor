@@ -1,0 +1,85 @@
+@page "/projects"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Project
+@inject IProjectService ProjectService
+@inject NavigationManager Nav
+
+<div class="project-container">
+    <h2 class="title">Progetti</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Projects is not null)
+    {
+        <div class="actions-top">
+            <button class="btn-create" @onclick="Create">+ Nuovo Progetto</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="project-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Azienda</th>
+                        <th>Tariffa</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var p in Projects)
+                    {
+                        <tr>
+                            <td>@p.Name</td>
+                            <td>@p.CompanyName</td>
+                            <td>@($"{p.HourlyRate} €/h")</td>
+                            <td>
+                                <button class="btn-details" @onclick="() => Details(p.Id)">
+                                    Dettagli
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<ProjectDto>? Projects;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Projects = await ProjectService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void Details(Guid id)
+    {
+        Nav.NavigateTo($"/projects/details/{id}");
+    }
+
+    private void Create()
+    {
+        Nav.NavigateTo("/projects/form");
+    }
+}

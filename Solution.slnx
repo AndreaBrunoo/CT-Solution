@@ -2,5 +2,9 @@
   <Project Path="Api/Api.csproj" />
   <Project Path="DataAccess/DataAccess.csproj" />
   <Project Path="Domain/Domain.csproj" />
+  <Project Path="Frontend.Application/Frontend.Application.csproj" />
+  <Project Path="Frontend.Domain/Frontend.Domain.csproj" />
+  <Project Path="Frontend.Infrastructure/Frontend.Infrastructure.csproj" />
+  <Project Path="Frontend.Presentation/Frontend.Presentation.csproj" />
   <Project Path="Frontend/Frontend.csproj" />
 </Solution>

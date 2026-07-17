@@ -1,6 +1,7 @@
 using Sln.Domain.DTOs;
 
 namespace Sln.Domain.Interfaces;
+
 public interface IRoleService
 {
     Task<RoleDto> CreateRoleAsync(CreateRoleDto dto, CancellationToken ct);

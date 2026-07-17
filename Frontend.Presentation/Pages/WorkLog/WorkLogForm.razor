@@ -1,0 +1,187 @@
+@using Frontend.Domain.Contracts;
+@using Frontend.Domain.Dtos.WorkLog;
+@using Frontend.Domain.Dtos.Project;
+@using Frontend.Domain.Dtos.Category;
+@using Frontend.Domain.Dtos.Status;
+@using Frontend.Domain.Dtos.Employee;
+
+@page "/worklog/form"
+@page "/worklog/form/{Id:guid}"
+
+@inject IWorkLogService WorkLogService
+@inject IProjectService ProjectService
+@inject ICategoryService CategoryService
+@inject IStatusService StatusService
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Nav
+
+<div class="form-container">
+    <h2 class="title">@((Id.HasValue ? "Modifica WorkLog" : "Nuovo WorkLog"))</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else
+    {
+        <EditForm Model="@Model" OnValidSubmit="@SaveAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label>Nome</label>
+                <InputText class="form-control" @bind-Value="Model.Name" />
+            </div>
+
+            <div class="form-group">
+                <label>Descrizione</label>
+                <InputText class="form-control" @bind-Value="Model.Description" />
+            </div>
+
+            <div class="form-group">
+                <label>Ore</label>
+                <InputNumber class="form-control" @bind-Value="Model.HoursCounter" />
+            </div>
+
+            <div class="form-group">
+                <label>Data</label>
+                <InputDate class="form-control" @bind-Value="Model.Date" />
+            </div>
+
+            <!-- PROGETTO -->
+            <div class="form-group">
+                <label>Progetto</label>
+                <InputSelect class="form-control" @bind-Value="Model.IdProject">
+                    <option value="">-- Seleziona progetto --</option>
+                    @foreach (var p in Projects)
+                    {
+                        <option value="@p.Id">@p.Name</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <!-- CATEGORIA -->
+            <div class="form-group">
+                <label>Categoria</label>
+                <InputSelect class="form-control" @bind-Value="Model.IdCategory">
+                    <option value="">-- Seleziona categoria --</option>
+                    @foreach (var c in Categories)
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <!-- STATO -->
+            <div class="form-group">
+                <label>Stato</label>
+                <InputSelect class="form-control" @bind-Value="Model.IdStatus">
+                    <option value="">-- Seleziona stato --</option>
+                    @foreach (var s in Statuses)
+                    {
+                        <option value="@s.Id">@s.Name</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <!-- EMPLOYEE (se serve) -->
+            <div class="form-group">
+                <label>Dipendente</label>
+                <InputSelect class="form-control" @bind-Value="Model.IdEmployee">
+                    <option value="">-- Seleziona dipendente --</option>
+                    @foreach (var e in Employees)
+                    {
+                        <option value="@e.Id">@e.Email</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="actions">
+                <button class="btn-save" type="submit">Salva</button>
+                <button class="btn-back" @onclick="GoBack">Annulla</button>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private UpdateWorkLogDto Model = new();
+    private bool IsLoading = true;
+
+    private List<ProjectDto> Projects = new();
+    private List<CategoryDto> Categories = new();
+    private List<StatusDto> Statuses = new();
+    private List<EmployeeDto> Employees = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carica dropdown
+        Projects = (await ProjectService.GetAllAsync())?.ToList() ?? new List<ProjectDto>();
+        Categories = (await CategoryService.GetAllAsync())?.ToList() ?? new List<CategoryDto>();
+        Statuses = (await StatusService.GetAllAsync())?.ToList() ?? new List<StatusDto>();
+        Employees = (await EmployeeService.GetAllAsync())?.ToList() ?? new List<EmployeeDto>();
+
+        // Modalità EDIT
+        if (Id.HasValue)
+        {
+            var existing = await WorkLogService.GetByIdAsync(Id.Value);
+
+            if (existing != null)
+            {
+                Model = new UpdateWorkLogDto
+                {
+                    Id = existing.Id,
+                    Name = existing.Name,
+                    Description = existing.Description,
+                    HoursCounter = existing.HoursCounter,
+                    Date = existing.Date,
+                    IdProject = existing.IdProject,
+                    IdEmployee = existing.IdEmployee,
+                    IdCategory = existing.IdCategory,
+                    IdStatus = existing.IdStatus
+                };
+            }
+        }
+        else
+        {
+            // Modalità CREATE
+            Model = new UpdateWorkLogDto
+            {
+                Id = Guid.NewGuid(),
+                Date = DateOnly.FromDateTime(DateTime.Today)
+            };
+        }
+
+        IsLoading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (Id.HasValue)
+        {
+            await WorkLogService.UpdateAsync(Model);
+        }
+        else
+        {
+            var createDto = new CreateWorkLogDto
+            {
+                Name = Model.Name,
+                Description = Model.Description,
+                HoursCounter = Model.HoursCounter,
+                Date = Model.Date,
+                IdProject = Model.IdProject,
+                IdEmployee = Model.IdEmployee,
+                IdCategory = Model.IdCategory,
+                IdStatus = Model.IdStatus
+            };
+
+            await WorkLogService.CreateAsync(createDto);
+        }
+
+        Nav.NavigateTo("/worklog");
+    }
+
+    private void GoBack() => Nav.NavigateTo("/worklog");
+}

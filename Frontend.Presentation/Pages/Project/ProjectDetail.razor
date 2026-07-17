@@ -1,0 +1,75 @@
+@page "/projects/details/{Id:guid}"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Project
+@inject IProjectService ProjectService
+@inject NavigationManager Nav
+
+<div class="details-container">
+    <h2 class="title">Dettaglio Progetto</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Project is not null)
+    {
+        <div class="details-card">
+
+            <div class="details-row">
+                <span class="label">Nome:</span>
+                <span class="value">@Project.Name</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Azienda:</span>
+                <span class="value">@Project.CompanyName</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">Tariffa oraria:</span>
+                <span class="value">@($"{Project.HourlyRate} €/h")</span>
+            </div>
+
+            <div class="details-row">
+                <span class="label">ID:</span>
+                <span class="value">@Project.Id</span>
+            </div>
+
+            <div class="actions">
+                <button class="btn-back" @onclick="GoBack">← Indietro</button>
+                <button class="btn-edit" @onclick="Edit">Modifica</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ProjectDto? Project;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Project = await ProjectService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/projects");
+    private void Edit() => Nav.NavigateTo($"/projects/form/{Id}");
+}

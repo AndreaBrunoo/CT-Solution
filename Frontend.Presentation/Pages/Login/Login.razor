@@ -1,0 +1,79 @@
+@using Frontend.Domain.Dtos.User;
+@using Frontend.Domain.Contracts;
+
+@page "/"
+@inject IUserService UserService
+@inject NavigationManager Nav
+
+<div class="login-page">
+    <div class="login-card">
+        <h2>Accedi</h2>
+
+        <EditForm Model="@model" OnValidSubmit="@DoLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label>Email</label>
+                <InputText class="form-control" @bind-Value="model.Email" />
+                <ValidationMessage For="@(() => model.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <InputText class="form-control" type="password" @bind-Value="model.Password" />
+                <ValidationMessage For="@(() => model.Password)" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert-error">@ErrorMessage</div>
+            }
+
+            <button type="submit" class="btn-login" disabled="@IsBusy">
+                @if (IsBusy)
+                {
+                    <span class="spinner"></span>
+                    <span>Accesso in corso…</span>
+                }
+                else
+                {
+                    <span>Accedi</span>
+                }
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginDto model = new();
+    private bool IsBusy = false;
+    private string ErrorMessage = string.Empty;
+
+    private async Task DoLogin()
+    {
+        ErrorMessage = string.Empty;
+        IsBusy = true;
+
+        try
+        {
+            var result = await UserService.LoginAsync(model);
+
+            if (result?.Token is null)
+            {
+                ErrorMessage = "Credenziali non valide.";
+                return;
+            }
+
+            Nav.NavigateTo("/Dashboard");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+}

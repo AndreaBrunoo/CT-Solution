@@ -1,0 +1,85 @@
+@using Frontend.Domain.Dtos.Dashboard;
+@using Frontend.Domain.Contracts;
+
+@page "/Dashboard"
+@inject IDashboardService DashboardService
+
+<div class="dashboard-container">
+    <h2 class="dashboard-title">Dashboard</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Data is not null)
+    {
+        <div class="kpi-grid">
+
+            <div class="kpi-card">
+                <div class="kpi-icon">⏱️</div>
+                <div class="kpi-value">@Data.MyHoursWeek</div>
+                <div class="kpi-label">Ore ultime 2 settimane</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon">📝</div>
+                <div class="kpi-value">@Data.MyWorkLogsCount</div>
+                <div class="kpi-label">WorkLog totali</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon">📁</div>
+                <div class="kpi-value">@Data.ProjectsCount</div>
+                <div class="kpi-label">Progetti</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon">🏢</div>
+                <div class="kpi-value">@Data.CompaniesCount</div>
+                <div class="kpi-label">Aziende</div>
+            </div>
+
+        </div>
+
+        <h3 class="section-title">WorkLog recenti</h3>
+
+        <div class="recent-list">
+            @foreach (var w in Data.RecentWorkLogs)
+            {
+                <div class="recent-item">
+                    <div class="recent-left">
+                        <div class="recent-date">@w.Date.ToString("dd/MM/yyyy")</div>
+                        <div class="recent-desc">@w.Description</div>
+                    </div>
+                    <div class="recent-hours">@w.HoursCounter h</div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private DashboardDto? Data;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Data = await DashboardService.GetKpiAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
