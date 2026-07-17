@@ -17,14 +17,14 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("http://localhost:5203/")
+    BaseAddress = new Uri("http://localhost:5203")
 });
 
 builder.Services.AddScoped<AuthHeaderHandler>();
 
 builder.Services.AddHttpClient("ApiClient", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:5203/");
+    client.BaseAddress = new Uri("https://localhost:5203");
 })
 .AddHttpMessageHandler<AuthHeaderHandler>();
 

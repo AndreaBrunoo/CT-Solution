@@ -6,5 +6,4 @@
   <Project Path="Frontend.Domain/Frontend.Domain.csproj" />
   <Project Path="Frontend.Infrastructure/Frontend.Infrastructure.csproj" />
   <Project Path="Frontend.Presentation/Frontend.Presentation.csproj" />
-  <Project Path="Frontend/Frontend.csproj" />
 </Solution>
