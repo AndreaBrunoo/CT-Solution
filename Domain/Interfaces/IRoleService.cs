@@ -7,4 +7,5 @@ public interface IRoleService
     Task<RoleDto> CreateRoleAsync(CreateRoleDto dto, CancellationToken ct);
     Task<IReadOnlyList<RoleDto>> GetAllAsync(CancellationToken ct);
     Task DeleteRoleAsync(Guid roleId, CancellationToken ct);
+    Task RestoreRoleAsync(Guid roleId, CancellationToken ct);
 }

@@ -24,6 +24,8 @@ public static class XpoWorkLogMapper
         xpo.Date = domain.Date;
         xpo.CreatedAt = domain.CreatedAt;
         xpo.UpdatedAt = domain.UpdatedAt;
+        xpo.IsDeleted = domain.IsDeleted;
+        xpo.DeletedAt = domain.DeletedAt;
 
         // Relations (caricate tramite ID)
         xpo.Project = uow.GetObjectByKey<XpoProject>(domain.IdProject);
@@ -48,7 +50,11 @@ public static class XpoWorkLogMapper
             idEmployee: xpo.Employee?.Id ?? Guid.Empty,
             idCategory: xpo.Category?.Id ?? Guid.Empty,
             idStatus: xpo.Status?.Id ?? Guid.Empty
-        );
+        )
+        {
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
     }
 
     public static WorkLogDto ToDto(WorkLog domain, XpoWorkLog xpo)
@@ -70,7 +76,10 @@ public static class XpoWorkLogMapper
             ProjectName = xpo.Project?.Name,
             EmployeeName = xpo.Employee?.UserName,
             CategoryName = xpo.Category?.Name,
-            StatusName = xpo.Status?.Name
+            StatusName = xpo.Status?.Name,
+
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

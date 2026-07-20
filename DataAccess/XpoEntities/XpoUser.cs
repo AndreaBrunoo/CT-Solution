@@ -46,6 +46,37 @@ public class XpoUser : XPBaseObject
         set => SetPropertyValue(nameof(PasswordSalt), ref passwordSalt, value);
     }
 
+    // -----------------------------
+    // Soft Delete
+    // -----------------------------
+
+    [NonPersistent]
+    public bool IsDeleted
+    {
+        get => DeletedAt != null;
+        set
+        {
+            if (value)
+            {
+                if (DeletedAt == null)
+                    DeletedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                DeletedAt = null;
+            }
+        }
+    }
+
+    private DateTime? deletedAt;
+
+    [Persistent]
+    public DateTime? DeletedAt
+    {
+        get => deletedAt;
+        set => SetPropertyValue(nameof(DeletedAt), ref deletedAt, value);
+    }
+
     [Association("User-Employees")]
     public XPCollection<XpoEmployee> Employees => GetCollection<XpoEmployee>(nameof(Employees));
 

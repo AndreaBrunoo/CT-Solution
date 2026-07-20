@@ -13,16 +13,16 @@ public class TokenProvider : ITokenProvider
 
     public async Task<string?> GetTokenAsync()
     {
-        return await _js.InvokeAsync<string?>("get", "authToken");
+        return await _js.InvokeAsync<string?>("localStorageInterop.get", "authToken");
     }
 
     public async Task SetTokenAsync(string token)
     {
-        await _js.InvokeVoidAsync("set", "authToken", token);
+        await _js.InvokeVoidAsync("localStorageInterop.set", "authToken", token);
     }
 
     public async Task RemoveTokenAsync()
     {
-        await _js.InvokeVoidAsync("remove", "authToken");
+        await _js.InvokeVoidAsync("localStorageInterop.remove", "authToken");
     }
 }

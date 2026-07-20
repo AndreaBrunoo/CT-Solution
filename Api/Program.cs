@@ -17,6 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Crea il file SQLite se non esiste
 var connectionString = SQLiteConnectionProvider.GetConnectionString("AuthDatabase.db");
 
+// Sopprimi il check di XPO sul membro IsDeleted ereditato da PersistentBase
+DevExpress.Xpo.Metadata.ReflectionClassInfo.SuppressSuspiciousMemberInheritanceCheck = true;
+
 // Crea automaticamente database + schema XPO
 XpoDefault.DataLayer = XpoDefault.GetDataLayer(
     connectionString,

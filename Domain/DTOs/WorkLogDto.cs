@@ -19,6 +19,8 @@ public class WorkLogDto
     public string? EmployeeName { get; set; }
     public string? CategoryName { get; set; }
     public string? StatusName { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }
 
 public class CreateWorkLogDto

@@ -9,4 +9,5 @@ public interface ICompanyService
     Task<CompanyDto> CreateAsync(CreateCompanyDto dto, CancellationToken ct = default);
     Task<CompanyDto?> UpdateAsync(UpdateCompanyDto dto, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task RestoreAsync(Guid id, CancellationToken ct = default);
 }

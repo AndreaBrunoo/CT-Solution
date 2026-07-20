@@ -10,7 +10,7 @@ public static class XpoCompanyMapper
     public static XpoCompany ToXpo(Company domain, UnitOfWork uow)
     {
         // Carica o crea l'oggetto XPO
-        var xpo = uow.GetObjectByKey<XpoCompany>(domain.Id) 
+        var xpo = uow.GetObjectByKey<XpoCompany>(domain.Id)
                   ?? new XpoCompany(uow)
                   {
                       Id = domain.Id
@@ -20,6 +20,8 @@ public static class XpoCompanyMapper
         xpo.Id            = domain.Id;
         xpo.Name          = domain.Name;
         xpo.Email         = domain.Email;
+        xpo.IsDeleted     = domain.IsDeleted;
+        xpo.DeletedAt     = domain.DeletedAt;
 
         return xpo;
     }
@@ -30,7 +32,11 @@ public static class XpoCompanyMapper
             id: xpo.Id,
             name: xpo.Name,
             email: xpo.Email
-        );
+        )
+        {
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
     }
 
     public static CompanyDto ToDto(Company domain)
@@ -39,7 +45,9 @@ public static class XpoCompanyMapper
         {
             Id = domain.Id,
             Name = domain.Name,
-            Email = domain.Email
+            Email = domain.Email,
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

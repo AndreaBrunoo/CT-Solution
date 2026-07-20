@@ -9,4 +9,5 @@ public interface IProjectService
     Task<ProjectDto> CreateAsync(CreateProjectDto dto, CancellationToken ct = default);
     Task<ProjectDto?> UpdateAsync(UpdateProjectDto dto, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task RestoreAsync(Guid id, CancellationToken ct = default);
 }

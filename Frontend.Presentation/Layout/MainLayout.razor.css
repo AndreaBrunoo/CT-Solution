@@ -1,77 +1,104 @@
-.page {
-    position: relative;
+/* ============================================
+   MainLayout — shell applicazione autenticata
+   ============================================ */
+
+.app-shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg-app);
+}
+
+.app-main {
+    flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
 }
 
-main {
-    flex: 1;
-}
-
+/* Sidebar */
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--color-bg-sidebar);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
 }
 
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
+/* Topbar */
+.topbar {
+    height: var(--topbar-height);
+    background: var(--color-bg-topbar);
+    border-bottom: 1px solid var(--color-border);
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-8);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: var(--shadow-sm);
 }
 
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-    }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
+.topbar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
 }
 
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
 
+.btn-topbar {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-topbar:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-strong);
+    color: var(--color-text-primary);
+}
+
+.btn-topbar svg {
+    flex-shrink: 0;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: var(--space-8);
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
     .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
+        width: 72px;
     }
-
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
+    .topbar {
+        padding: 0 var(--space-4);
     }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
-
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+    .content {
+        padding: var(--space-4);
     }
 }

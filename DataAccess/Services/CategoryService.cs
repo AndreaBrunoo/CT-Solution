@@ -24,7 +24,7 @@ public class CategoryService : ICategoryService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(id, ct);
-            if (xpo == null) return null;
+            if (xpo == null || xpo.IsDeleted) return null;
 
             var domain = XpoCategoryMapper.ToDomain(xpo);
 
@@ -36,7 +36,9 @@ public class CategoryService : ICategoryService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoCategory>().ToListAsync(ct);
+            var list = await uow.Query<XpoCategory>()
+                .Where(x => x.DeletedAt == null)
+                .ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -56,7 +58,7 @@ public class CategoryService : ICategoryService
         {
             var existing = await uow.Query<XpoCategory>()
                 .FirstOrDefaultAsync(w =>
-                    w.Name == dto.Name,
+                    w.DeletedAt == null && w.Name == dto.Name,
                     ct);
 
             if (existing != null)
@@ -85,7 +87,7 @@ public class CategoryService : ICategoryService
         return await _ctx.DoTranAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(dto.Id, ct);
-            if (xpo == null)
+            if (xpo == null || xpo.IsDeleted)
             {
                 await _logger.LogFailureAsync("Update", "Category", dto.Id,
                     "Category not found", ct);
@@ -111,14 +113,39 @@ public class CategoryService : ICategoryService
             var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(id, ct);
             if (xpo == null)
             {
-                await _logger.LogFailureAsync("Delete", "Category", id,
+                await _logger.LogFailureAsync("SoftDelete", "Category", id,
                     "Category not found", ct);
                 throw new Exception("Category not found");
             }
 
-            xpo.Delete();
+            if (!xpo.IsDeleted)
+            {
+                xpo.IsDeleted = true;
+                xpo.DeletedAt = DateTime.UtcNow;
+            }
 
-            await _logger.LogSuccessAsync(uow, "Delete", "Category", id, ct);
+            await _logger.LogSuccessAsync(uow, "SoftDelete", "Category", id, ct);
+
+            return true;
+        });
+    }
+
+    public async Task RestoreAsync(Guid id, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoCategory>(id, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Restore", "Category", id,
+                    "Category not found", ct);
+                throw new Exception("Category not found");
+            }
+
+            xpo.IsDeleted = false;
+            xpo.DeletedAt = null;
+
+            await _logger.LogSuccessAsync(uow, "Restore", "Category", id, ct);
 
             return true;
         });

@@ -1,39 +1,92 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Frontend.Presentation</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+@using Frontend.Domain.Contracts
+@inject NavigationManager Nav
+@inject IUserService UserService
+
+<div class="profile-card">
+    <div class="profile-avatar-grid">
+        <div class="profile-avatar-tile">@Initial1</div>
+        <div class="profile-avatar-tile">@Initial2</div>
+        <div class="profile-avatar-tile">@Initial2</div>
+        <div class="profile-avatar-tile">@Initial1</div>
+    </div>
+    <div class="profile-info">
+        <span class="profile-name">@DisplayName</span>
+        <span class="profile-role">@DisplayRole</span>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+<nav class="sidebar-nav">
+    @foreach (var item in NavItems)
+    {
+        <div class="nav-item">
+            <NavLink class="nav-link nav-volume-btn" href="@item.Href" Match="@item.Match">
+                <div class="nav-link-main">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="@item.IconPath" />
+                    </svg>
+                    <span class="nav-label">@item.Label</span>
+                </div>
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    }
+
+    <div class="nav-item nav-item-footer">
+        <NavLink class="nav-link nav-volume-btn" href="admin/logs">
+            <div class="nav-link-main">
+                <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7.2 7.2 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.262 62.5 62.5 0 0 0-2.887-.87C9.843.266 8.69 0 8 0zm0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5z"/>
+                </svg>
+                <span class="nav-label">Admin</span>
+            </div>
+        </NavLink>
+    </div>
+</nav>
 
 @code {
-    private bool collapseNavMenu = true;
+    private string DisplayName = "Utente";
+    private string DisplayRole = "Operatore";
+    private string Initial1 = "U";
+    private string Initial2 = "T";
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private record NavItem(string Href, string Label, string IconPath, NavLinkMatch Match = NavLinkMatch.Prefix);
 
-    private void ToggleNavMenu()
+    private readonly List<NavItem> NavItems = new()
     {
-        collapseNavMenu = !collapseNavMenu;
+        new NavItem("Dashboard", "Dashboard", "M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5Z", NavLinkMatch.All),
+        new NavItem("worklog", "WorkLog", "M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"),
+        new NavItem("projects", "Progetti", "M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h2.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 8.828 3h1z"),
+        new NavItem("companies", "Aziende", "M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .341-.467l2.828-1.122a.5.5 0 1 0-.447-.894l-2.829 1.122A1.5 1.5 0 0 0 0 10v5.5A1.5 1.5 0 0 0 1.5 17h13a1.5 1.5 0 0 0 1.5-1.5v-15A1.5 1.5 0 0 0 14.5 0h-3a.5.5 0 0 0-.5.5v.075H10V.5A.5.5 0 0 0 9.5 0h-6a.5.5 0 0 0-.5.5V8h-.5A1.5 1.5 0 0 0 .5 9.5V10h.5v-.5A.5.5 0 0 1 1.5 9h.5V8H2V.5A1.5 1.5 0 0 1 3.5 0h6A1.5 1.5 0 0 1 11 .5V8h.5A1.5 1.5 0 0 1 13 9.5v.5h.5a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-.5.5H14V.5a.5.5 0 0 1 .5-.5h.263zM10 3v1.5a.5.5 0 0 0 .5.5h.5V3h-1z"),
+        new NavItem("employees", "Dipendenti", "M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM5.216 14A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.286.546-.547.91-.786.365-.24.776-.43 1.227-.567.45-.137.93-.207 1.426-.207.495 0 .975.07 1.426.207.45.137.86.327 1.226.567.365.24.668.5.91.786C13.623 10.958 14 11.99 14 13a2.238 2.238 0 0 1-.216 1H5.216zM4 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H4z"),
+        new NavItem("categories", "Categorie", "M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1H2zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"),
+        new NavItem("statuses", "Stati", "M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L10.5 10l.186.464A.5.5 0 0 1 10 11h-.5v2.5a.5.5 0 0 1-1 0V11h-.5a.5.5 0 0 1-.5-.5V10H4.5a.5.5 0 0 1-.49-.598l.66-2.6H2.5A.5.5 0 0 1 2 6.5V.5A.5.5 0 0 1 2.5 0h8.5a.5.5 0 0 1 .5.5v.165l2.278.612A.5.5 0 0 1 14.778.085z"),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var current = await UserService.GetCurrentUserAsync();
+            if (current is not null)
+            {
+                DisplayName = string.IsNullOrWhiteSpace(current.Email) ? "Utente" : current.Email;
+                DisplayRole = current.Roles is { Count: > 0 } ? current.Roles[0] : "Operatore";
+
+                var nameForInitials = current.Email?.Split('@')[0] ?? "Utente";
+                if (nameForInitials.Length >= 2)
+                {
+                    Initial1 = nameForInitials[..1].ToUpper();
+                    Initial2 = nameForInitials.Substring(1, 1).ToUpper();
+                }
+                else
+                {
+                    Initial1 = nameForInitials.ToUpper();
+                    Initial2 = "";
+                }
+            }
+        }
+        catch
+        {
+            // fallback silenzioso ai valori di default
+        }
     }
 }

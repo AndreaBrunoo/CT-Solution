@@ -17,8 +17,10 @@ public static class XpoStatusMapper
                   };
 
         // Primitive fields
-        xpo.Id = domain.Id;
-        xpo.Name = domain.Name;
+        xpo.Id            = domain.Id;
+        xpo.Name          = domain.Name;
+        xpo.IsDeleted     = domain.IsDeleted;
+        xpo.DeletedAt     = domain.DeletedAt;
 
         return xpo;
     }
@@ -28,7 +30,11 @@ public static class XpoStatusMapper
         return new Status(
             id: xpo.Id,
             name: xpo.Name
-        );
+        )
+        {
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
     }
 
     public static StatusDto ToDto(Status domain)
@@ -36,7 +42,9 @@ public static class XpoStatusMapper
         return new StatusDto
         {
             Id = domain.Id,
-            Name = domain.Name
+            Name = domain.Name,
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

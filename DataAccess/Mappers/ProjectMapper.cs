@@ -20,6 +20,8 @@ public static class XpoProjectMapper
         xpo.Id = domain.Id;
         xpo.Name = domain.Name;
         xpo.HourlyRate = domain.HourlyRate;
+        xpo.IsDeleted = domain.IsDeleted;
+        xpo.DeletedAt = domain.DeletedAt;
 
         // Relations (caricate tramite ID)
         xpo.Company = uow.GetObjectByKey<XpoCompany>(domain.IdCompany);
@@ -34,7 +36,11 @@ public static class XpoProjectMapper
             name: xpo.Name,
             hourlyRate: xpo.HourlyRate,
             idCompany: xpo.Company?.Id ?? Guid.Empty
-        );
+        )
+        {
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
 
         domain.Company = xpo.Company != null
             ? new Company(xpo.Company.Id, xpo.Company.Name, xpo.Company.Email)
@@ -51,7 +57,9 @@ public static class XpoProjectMapper
             Name = domain.Name,
             IdCompany = domain.IdCompany,
             HourlyRate = domain.HourlyRate,
-            CompanyName = domain.Company?.Name
+            CompanyName = domain.Company?.Name,
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

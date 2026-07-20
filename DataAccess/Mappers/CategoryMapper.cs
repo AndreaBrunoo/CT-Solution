@@ -10,7 +10,7 @@ public static class XpoCategoryMapper
     public static XpoCategory ToXpo(Category domain, UnitOfWork uow)
     {
         // Carica o crea l'oggetto XPO
-        var xpo = uow.GetObjectByKey<XpoCategory>(domain.Id) 
+        var xpo = uow.GetObjectByKey<XpoCategory>(domain.Id)
                   ?? new XpoCategory(uow)
                   {
                       Id = domain.Id
@@ -19,6 +19,8 @@ public static class XpoCategoryMapper
         // Primitive fields
         xpo.Id            = domain.Id;
         xpo.Name          = domain.Name;
+        xpo.IsDeleted     = domain.IsDeleted;
+        xpo.DeletedAt     = domain.DeletedAt;
 
         return xpo;
     }
@@ -28,7 +30,11 @@ public static class XpoCategoryMapper
         return new Category(
             id: xpo.Id,
             name: xpo.Name
-        );
+        )
+        {
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
     }
 
     public static CategoryDto ToDto(Category domain)
@@ -36,7 +42,9 @@ public static class XpoCategoryMapper
         return new CategoryDto
         {
             Id = domain.Id,
-            Name = domain.Name
+            Name = domain.Name,
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

@@ -19,6 +19,8 @@ public static class XpoEmployeeMapper
         // Primitive fields
         xpo.Id = domain.Id;
         xpo.UserName = domain.UserName;
+        xpo.IsDeleted = domain.IsDeleted;
+        xpo.DeletedAt = domain.DeletedAt;
 
         // Relations (caricate tramite ID)
         xpo.User = uow.GetObjectByKey<XpoUser>(domain.IdUser);
@@ -31,7 +33,11 @@ public static class XpoEmployeeMapper
         var domain = new Employee(
             id: xpo.Id,
             userName: xpo.UserName
-        );
+        )
+        {
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
 
         domain.User = xpo.User == null
             ? null
@@ -47,6 +53,8 @@ public static class XpoEmployeeMapper
             Id = domain.Id,
             UserName = domain.UserName,
             Email = domain.User.Email,
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

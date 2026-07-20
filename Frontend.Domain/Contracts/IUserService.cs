@@ -8,6 +8,7 @@ public interface IUserService
     Task<AuthResponseDto?> LoginAsync(LoginDto dto);
     Task<UserDto?> GetByIdAsync(Guid id);
     Task<UserDto?> GetByEmailAsync(string email);
+    Task<CurrentUserDto?> GetCurrentUserAsync();
     Task<IReadOnlyList<UserDto>?> GetAllAsync();
     Task<bool> AssignRoleAsync(Guid userId, Guid roleId);
     Task<bool> RemoveRoleAsync(Guid userId, Guid roleId);

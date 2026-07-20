@@ -1,0 +1,81 @@
+@page "/categories"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Category
+@inject ICategoryService CategoryService
+@inject NavigationManager Nav
+
+<div class="category-container">
+    <h2 class="title">Categorie</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Categories is not null)
+    {
+        <div class="actions-top">
+            <button class="btn-create" @onclick="Create">+ Nuova Categoria</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="category-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (CategoryDto c in Categories)
+                    {
+                        <tr>
+                            <td>@c.Name</td>
+                            <td>
+                                <button class="btn-details" @onclick="() => Details(c.Id)">
+                                    Dettagli
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<CategoryDto>? Categories;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Categories = (await CategoryService.GetAllAsync())?.ToList() ?? new List<CategoryDto>();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void Details(Guid id)
+    {
+        Nav.NavigateTo($"/categories/details/{id}");
+    }
+
+    private void Create()
+    {
+        Nav.NavigateTo("/categories/form");
+    }
+}

@@ -1,0 +1,88 @@
+@page "/categories/form"
+@page "/categories/form/{Id:guid}"
+
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Category
+
+@inject ICategoryService CategoryService
+@inject NavigationManager Nav
+
+<div class="form-container">
+    <h2 class="title">@((Id.HasValue ? "Modifica Categoria" : "Nuova Categoria"))</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else
+    {
+        <EditForm Model="@Model" OnValidSubmit="@SaveAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label>Nome</label>
+                <InputText class="form-control" @bind-Value="Model.Name" />
+            </div>
+
+            <div class="actions">
+                <button class="btn-save" type="submit">Salva</button>
+                <button class="btn-back" @onclick="GoBack">Annulla</button>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private UpdateCategoryDto Model = new();
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var existing = await CategoryService.GetByIdAsync(Id.Value);
+
+            if (existing != null)
+            {
+                Model = new UpdateCategoryDto
+                {
+                    Id = existing.Id,
+                    Name = existing.Name,
+                };
+            }
+        }
+        else
+        {
+            Model = new UpdateCategoryDto
+            {
+                Id = Guid.NewGuid()
+            };
+        }
+
+        IsLoading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (Id.HasValue)
+        {
+            await CategoryService.UpdateAsync(Model);
+        }
+        else
+        {
+            var createDto = new CreateCategoryDto
+            {
+                Name = Model.Name,
+            };
+
+            await CategoryService.CreateAsync(createDto);
+        }
+
+        Nav.NavigateTo("/categories");
+    }
+
+    private void GoBack() => Nav.NavigateTo("/categories");
+}

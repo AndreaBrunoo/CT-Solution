@@ -1,0 +1,81 @@
+@page "/statuses"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Status
+@inject IStatusService StatusService
+@inject NavigationManager Nav
+
+<div class="status-container">
+    <h2 class="title">Stati</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Statuses is not null)
+    {
+        <div class="actions-top">
+            <button class="btn-create" @onclick="Create">+ Nuovo Stato</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="status-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var s in Statuses)
+                    {
+                        <tr>
+                            <td>@s.Name</td>
+                            <td>
+                                <button class="btn-details" @onclick="() => Details(s.Id)">
+                                    Dettagli
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<StatusDto>? Statuses;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Statuses = (await StatusService.GetAllAsync())?.ToList() ?? new List<StatusDto>();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void Details(Guid id)
+    {
+        Nav.NavigateTo($"/statuses/details/{id}");
+    }
+
+    private void Create()
+    {
+        Nav.NavigateTo("/statuses/form");
+    }
+}

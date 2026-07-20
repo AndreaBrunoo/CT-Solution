@@ -9,4 +9,5 @@ public interface IStatusService
     Task<StatusDto> CreateAsync(CreateStatusDto dto, CancellationToken ct = default);
     Task<StatusDto?> UpdateAsync(UpdateStatusDto dto, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task RestoreAsync(Guid id, CancellationToken ct = default);
 }

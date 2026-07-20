@@ -1,16 +1,64 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
+@inherits LayoutComponentBase
+@using Frontend.Domain.Contracts
+@inject ITokenProvider TokenProvider
+@inject NavigationManager Nav
+
+<div class="app-shell">
+    <aside class="sidebar">
         <NavMenu />
-    </div>
+    </aside>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+    <div class="app-main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="topbar-title">@GetPageTitle()</h1>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn-topbar" @onclick="Logout" title="Esci">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                        <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                    </svg>
+                    <span>Esci</span>
+                </button>
+            </div>
+        </header>
 
-        <article class="content px-4">
+        <main class="content">
             @Body
-        </article>
-    </main>
+        </main>
+    </div>
 </div>
+
+@code {
+    private string GetPageTitle()
+    {
+        var uri = new Uri(Nav.Uri);
+        var path = uri.AbsolutePath.Trim('/');
+
+        if (string.IsNullOrEmpty(path)) return "Dashboard";
+        var segments = path.Split('/');
+        var last = segments[^1];
+
+        return last switch
+        {
+            "Dashboard" => "Dashboard",
+            "worklog" => "WorkLog",
+            "projects" => "Progetti",
+            "companies" => "Aziende",
+            "employees" => "Dipendenti",
+            "categories" => "Categorie",
+            "statuses" => "Stati",
+            "form" => "Modifica",
+            "details" => "Dettagli",
+            "admin" or "logs" => "Admin",
+            _ => char.ToUpper(last[0]) + last[1..]
+        };
+    }
+
+    private async Task Logout()
+    {
+        await TokenProvider.RemoveTokenAsync();
+        Nav.NavigateTo("/", forceLoad: true);
+    }
+}

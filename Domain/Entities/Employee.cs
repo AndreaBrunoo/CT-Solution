@@ -12,9 +12,12 @@ public class Employee
 
     public Guid Id { get; set; }
     public string UserName { get; set; } = string.Empty;
-    
+
     public Guid? IdUser { get; set; }
     public User? User { get; set; }
-    
+
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+
     public ICollection<WorkLog> WorkLogs { get; set; } = new List<WorkLog>();
 }

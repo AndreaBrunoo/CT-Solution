@@ -79,7 +79,7 @@ public class UserService : IUserService
             var xpo = await uow.Query<XpoUser>()
                 .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-            if (xpo == null)
+            if (xpo == null || xpo.IsDeleted)
             {
                 await _logger.LogFailureAsync("Login", "User", null,
                     $"User '{dto.Email}' not exists", ct);
@@ -118,7 +118,9 @@ public class UserService : IUserService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoUser>().ToListAsync(ct);
+            var list = await uow.Query<XpoUser>()
+                .Where(x => !x.IsDeleted)
+                .ToListAsync(ct);
 
             return list
             .Select(xpo =>
@@ -136,10 +138,9 @@ public class UserService : IUserService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoUser>(id, ct);
+            if (xpo == null || xpo.IsDeleted) return null;
 
-            return xpo is null
-                ? null
-                : XpoUserMapper.ToDto(XpoUserMapper.ToDomain(xpo));
+            return XpoUserMapper.ToDto(XpoUserMapper.ToDomain(xpo));
         });
     }
 
@@ -148,7 +149,7 @@ public class UserService : IUserService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.Query<XpoUser>()
-                .FirstOrDefaultAsync(u => u.Email == email, ct);
+                .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email == email, ct);
 
             return xpo is null
                 ? null
@@ -270,27 +271,51 @@ public class UserService : IUserService
     }
 
     // ---------------------------------------------------------
-    // DELETE USER
+    // DELETE USER (soft delete)
     // ---------------------------------------------------------
-    public async Task DeleteAsync(Guid userId, CancellationToken ct)
+    public async Task<bool> DeleteAsync(Guid userId, CancellationToken ct)
+    {
+        return await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("SoftDelete", "User", userId,
+                    "User not found", ct);
+                throw new Exception("User not found");
+            }
+
+            if (!xpo.IsDeleted)
+            {
+                xpo.IsDeleted = true;
+                xpo.DeletedAt = DateTime.UtcNow;
+            }
+
+            await _logger.LogSuccessAsync(uow, "SoftDelete", "User", userId, ct);
+
+            return true;
+        });
+    }
+
+    // ---------------------------------------------------------
+    // RESTORE USER
+    // ---------------------------------------------------------
+    public async Task RestoreAsync(Guid userId, CancellationToken ct)
     {
         await _ctx.DoTranAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
             if (xpo == null)
             {
-                await _logger.LogFailureAsync("Delete", "User", null,
-                    $"User '{userId}' not found", ct);
+                await _logger.LogFailureAsync("Restore", "User", userId,
+                    "User not found", ct);
                 throw new Exception("User not found");
             }
 
-            xpo.Roles.Reload();
-            foreach (var role in xpo.Roles.ToList())
-                xpo.Roles.Remove(role);
+            xpo.IsDeleted = false;
+            xpo.DeletedAt = null;
 
-            await uow.DeleteAsync(xpo, ct);
-
-            await _logger.LogSuccessAsync(uow, "Delete", "User", userId, ct);
+            await _logger.LogSuccessAsync(uow, "Restore", "User", userId, ct);
 
             return true;
         });

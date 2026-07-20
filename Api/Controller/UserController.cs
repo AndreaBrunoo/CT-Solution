@@ -63,6 +63,22 @@ public class UserController : ControllerBase
         return Ok(new { Message = "Role assigned" });
     }
 
+    [Authorize]
+    [HttpGet("current-user")]
+    public async Task<IActionResult> GetCurrentUser(CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+
+        return Ok(new CurrentUserDto
+        {
+            Id = Guid.Parse(userId),
+            Email = email,
+            Roles = roles
+        });
+    }
+
 
     [Authorize(Roles = "Admin")]
     [HttpDelete("{userId:guid}/roles/{roleId:guid}")]
@@ -100,5 +116,13 @@ public class UserController : ControllerBase
     {
         await _userService.DeleteAsync(userId, ct);
         return Ok(new { Message = "User deleted" });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{userId:guid}/restore")]
+    public async Task<IActionResult> Restore(Guid userId, CancellationToken ct)
+    {
+        await _userService.RestoreAsync(userId, ct);
+        return Ok(new { Message = "User restored" });
     }
 }

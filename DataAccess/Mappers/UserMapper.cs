@@ -18,6 +18,8 @@ public static class XpoUserMapper
         xpo.Email = domain.Email;
         xpo.PasswordHash = domain.PasswordHash;
         xpo.PasswordSalt = domain.PasswordSalt;
+        xpo.IsDeleted = domain.IsDeleted;
+        xpo.DeletedAt = domain.DeletedAt;
 
         xpo.Roles.Reload();
 
@@ -43,10 +45,15 @@ public static class XpoUserMapper
     public static User ToDomain(XpoUser xpo)
     {
         xpo.Roles.Reload();
+        xpo.Employees.Reload();
 
         var roles = xpo.Roles
             .Select(r => new Role(r.Id, r.Name))
             .ToList();
+
+        var employee = xpo.Employees.FirstOrDefault() is { } xe
+            ? new Employee(xe.Id, xe.UserName)
+            : null;
 
         return new User(
             xpo.Id,
@@ -54,7 +61,12 @@ public static class XpoUserMapper
             xpo.PasswordHash,
             xpo.PasswordSalt,
             roles
-        );
+        )
+        {
+            Employee = employee,
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
     }
 
     public static UserDto ToDto(User domain)
@@ -65,7 +77,9 @@ public static class XpoUserMapper
             Email = domain.Email,
             Roles = domain.Roles
             .Select(XpoRoleMapper.ToDto)
-            .ToList()
+            .ToList(),
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

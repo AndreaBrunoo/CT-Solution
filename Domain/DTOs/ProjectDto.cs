@@ -9,6 +9,8 @@ public class ProjectDto
     public Guid IdCompany { get; set; }
     public decimal? HourlyRate { get; set; }
     public string? CompanyName { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }
 
 public class CreateProjectDto

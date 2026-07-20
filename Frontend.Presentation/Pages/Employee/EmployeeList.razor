@@ -1,0 +1,83 @@
+@page "/employees"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Employee
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Nav
+
+<div class="employee-container">
+    <h2 class="title">Dipendenti</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else if (Employees is not null)
+    {
+        <div class="actions-top">
+            <button class="btn-create" @onclick="Create">+ Nuovo Dipendente</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="employee-table">
+                <thead>
+                    <tr>
+                        <th>UserName</th>
+                        <th>Email</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var e in Employees)
+                    {
+                        <tr>
+                            <td>@e.UserName</td>
+                            <td>@e.Email</td>
+                            <td>
+                                <button class="btn-details" @onclick="() => Details(e.Id)">
+                                    Dettagli
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<EmployeeDto>? Employees;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Employees = (await EmployeeService.GetAllAsync())?.ToList() ?? new List<EmployeeDto>();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void Details(Guid id)
+    {
+        Nav.NavigateTo($"/employees/details/{id}");
+    }
+
+    private void Create()
+    {
+        Nav.NavigateTo("/employees/form");
+    }
+}

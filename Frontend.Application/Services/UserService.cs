@@ -32,6 +32,11 @@ public class UserService : IUserService
     public Task<UserDto?> GetByEmailAsync(string email)
         => _api.GetAsync<UserDto>($"api/User/email/{email}");
 
+    public async Task<CurrentUserDto?> GetCurrentUserAsync()
+    {
+        return await _api.GetAsync<CurrentUserDto>("api/User/current-user");
+    }
+
     public async Task<bool> AssignRoleAsync(Guid userId, Guid roleId)
     {
         var res = await _api.PostAsync($"api/User/{userId}/roles/{roleId}", null);

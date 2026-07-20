@@ -27,7 +27,7 @@ public class RoleService : IRoleService
         return await _ctx.DoTranAsync(async uow =>
         {
             var existing = await uow.Query<XpoRole>()
-                .FirstOrDefaultAsync(r => r.Name == dto.Name, ct);
+                .FirstOrDefaultAsync(r => !r.IsDeleted && r.Name == dto.Name, ct);
 
             if (existing != null)
             {
@@ -56,7 +56,9 @@ public class RoleService : IRoleService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoRole>().ToListAsync(ct);
+            var list = await uow.Query<XpoRole>()
+                .Where(x => !x.IsDeleted)
+                .ToListAsync(ct);
 
             return list
                 .Select(xpo =>
@@ -70,23 +72,53 @@ public class RoleService : IRoleService
     }
 
     // ---------------------------------------------------------
-    // DELETE ROLE
+    // DELETE ROLE (soft delete)
     // ---------------------------------------------------------
     public async Task DeleteRoleAsync(Guid roleId, CancellationToken ct)
     {
         await _ctx.DoTranAsync(async uow =>
         {
             var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
-            
+
             if (role == null)
             {
-                await _logger.LogFailureAsync("Delete", "Role", roleId,
+                await _logger.LogFailureAsync("SoftDelete", "Role", roleId,
                     "Role not found", ct);
                 throw new Exception("Role not found");
             }
-            role.Delete();
 
-            await _logger.LogSuccessAsync(uow, "Delete", "Role", roleId, ct);
+            if (!role.IsDeleted)
+            {
+                role.IsDeleted = true;
+                role.DeletedAt = DateTime.UtcNow;
+            }
+
+            await _logger.LogSuccessAsync(uow, "SoftDelete", "Role", roleId, ct);
+
+            return true;
+        });
+    }
+
+    // ---------------------------------------------------------
+    // RESTORE ROLE
+    // ---------------------------------------------------------
+    public async Task RestoreRoleAsync(Guid roleId, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var role = await uow.GetObjectByKeyAsync<XpoRole>(roleId, ct);
+
+            if (role == null)
+            {
+                await _logger.LogFailureAsync("Restore", "Role", roleId,
+                    "Role not found", ct);
+                throw new Exception("Role not found");
+            }
+
+            role.IsDeleted = false;
+            role.DeletedAt = null;
+
+            await _logger.LogSuccessAsync(uow, "Restore", "Role", roleId, ct);
 
             return true;
         });

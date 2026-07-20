@@ -24,7 +24,7 @@ public class StatusService : IStatusService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(id, ct);
-            if (xpo == null) return null;
+            if (xpo == null || xpo.IsDeleted) return null;
 
             var domain = XpoStatusMapper.ToDomain(xpo);
 
@@ -36,7 +36,9 @@ public class StatusService : IStatusService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoStatus>().ToListAsync(ct);
+            var list = await uow.Query<XpoStatus>()
+                .Where(x => !x.IsDeleted)
+                .ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -56,7 +58,7 @@ public class StatusService : IStatusService
         {
             var existing = await uow.Query<XpoStatus>()
                 .FirstOrDefaultAsync(w =>
-                    w.Name == dto.Name,
+                    !w.IsDeleted && w.Name == dto.Name,
                     ct);
 
             if (existing != null)
@@ -88,7 +90,7 @@ public class StatusService : IStatusService
         {
             // 1. Carico l'XPO esistente tramite ID
             var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(dto.Id, ct);
-            if (xpo == null)
+            if (xpo == null || xpo.IsDeleted)
             {
                 await _logger.LogFailureAsync("Update", "Status", dto.Id,
                     "Status not found", ct);
@@ -101,7 +103,7 @@ public class StatusService : IStatusService
             // 3. Aggiorno il Domain con i valori del DTO
             domain.Name = dto.Name;
 
-            // 4. Aggiorno l’XPO tramite il mapper
+            // 4. Aggiorno l'XPO tramite il mapper
             XpoStatusMapper.ToXpo(domain, uow);
 
             await _logger.LogSuccessAsync(uow, "Update", "Status", domain.Id, ct);
@@ -118,14 +120,39 @@ public class StatusService : IStatusService
             var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(id, ct);
             if (xpo == null)
             {
-                await _logger.LogFailureAsync("Delete", "Status", id,
+                await _logger.LogFailureAsync("SoftDelete", "Status", id,
                     "Status not found", ct);
                 throw new Exception("Status not found");
             }
 
-            xpo.Delete();
+            if (!xpo.IsDeleted)
+            {
+                xpo.IsDeleted = true;
+                xpo.DeletedAt = DateTime.UtcNow;
+            }
 
-            await _logger.LogSuccessAsync(uow, "Delete", "Status", id, ct);
+            await _logger.LogSuccessAsync(uow, "SoftDelete", "Status", id, ct);
+
+            return true;
+        });
+    }
+
+    public async Task RestoreAsync(Guid id, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoStatus>(id, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Restore", "Status", id,
+                    "Status not found", ct);
+                throw new Exception("Status not found");
+            }
+
+            xpo.IsDeleted = false;
+            xpo.DeletedAt = null;
+
+            await _logger.LogSuccessAsync(uow, "Restore", "Status", id, ct);
 
             return true;
         });

@@ -18,7 +18,7 @@ public class EmployeeService : IEmployeeService
 
     public Task<EmployeeDto?> GetProfileAsync()
         => _api.GetAsync<EmployeeDto>($"api/Employee/me");
-
+        
     public async Task<IReadOnlyList<EmployeeDto>?> GetAllAsync()
     {
         return await _api.GetAsync<IReadOnlyList<EmployeeDto>>("api/Employee");

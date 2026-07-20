@@ -55,4 +55,12 @@ public class StatusController : ControllerBase
         await _statusService.DeleteAsync(id, ct);
         return Ok(new { message = "Delete successful" });
     }
+
+    [Authorize(Roles = "ProjectManager, Admin")]
+    [HttpPost("{id:guid}/restore")]
+    public async Task<IActionResult> Restore(Guid id, CancellationToken ct)
+    {
+        await _statusService.RestoreAsync(id, ct);
+        return Ok(new { message = "Restore successful" });
+    }
 }

@@ -16,6 +16,8 @@ public static class XpoRoleMapper
                   };
 
         xpo.Name = domain.Name;
+        xpo.IsDeleted = domain.IsDeleted;
+        xpo.DeletedAt = domain.DeletedAt;
 
         foreach (var existing in xpo.Users.ToList())
         {
@@ -37,12 +39,14 @@ public static class XpoRoleMapper
 
     public static Role ToDomain(XpoRole xpo)
     {
-        var domain = new Role(
+        return new Role(
             id: xpo.Id,
             name: xpo.Name
-        );
-
-        return domain;
+        )
+        {
+            IsDeleted = xpo.IsDeleted,
+            DeletedAt = xpo.DeletedAt
+        };
     }
 
     public static RoleDto ToDto(Role domain)
@@ -50,7 +54,9 @@ public static class XpoRoleMapper
         return new RoleDto
         {
             Id = domain.Id,
-            Name = domain.Name
+            Name = domain.Name,
+            IsDeleted = domain.IsDeleted,
+            DeletedAt = domain.DeletedAt
         };
     }
 }

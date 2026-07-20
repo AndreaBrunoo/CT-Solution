@@ -25,6 +25,12 @@ public class ActionLogger : IActionLogger
         _uow = uow;
     }
 
+    public async Task<LogDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var log = await _uow.GetObjectByKeyAsync<XpoLog>(id, ct);
+        return log is null ? null : XpoLogMapper.ToDto(log);
+    }
+
     public (Guid? UserId, string? Email) GetCurrentUser()
     {
         var user = _httpContextAccessor.HttpContext?.User;

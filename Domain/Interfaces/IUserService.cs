@@ -13,5 +13,6 @@ public interface IUserService
     Task RemoveRoleAsync(Guid userId, Guid roleId, CancellationToken ct);
     Task<bool> HasRoleAsync(Guid userId, string roleName, CancellationToken ct);
     Task UpdatePasswordAsync(Guid userId, UpdatePasswordDto dto, CancellationToken ct);
-    Task DeleteAsync(Guid userId, CancellationToken ct);
+    Task<bool> DeleteAsync(Guid userId, CancellationToken ct);
+    Task RestoreAsync(Guid userId, CancellationToken ct);
 }

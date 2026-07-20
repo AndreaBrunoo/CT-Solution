@@ -7,6 +7,15 @@ public class UserDto
     public Guid Id { get; set; }
     public string Email { get; set; } = string.Empty;
     public IReadOnlyList<RoleDto> Roles { get; set; } = new List<RoleDto>();
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+}
+
+public class CurrentUserDto
+{
+    public Guid Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public List<string> Roles { get; set; } = new List<string>();
 }
 
 public class RegisterDto

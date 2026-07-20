@@ -39,4 +39,12 @@ public class RoleController : ControllerBase
         await _roleService.DeleteRoleAsync(roleId, ct);
         return Ok(new { message = "Delete successful" });
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{roleId:guid}/restore")]
+    public async Task<IActionResult> RestoreRole(Guid roleId, CancellationToken ct)
+    {
+        await _roleService.RestoreRoleAsync(roleId, ct);
+        return Ok(new { message = "Restore successful" });
+    }
 }

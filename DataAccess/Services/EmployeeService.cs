@@ -24,7 +24,7 @@ public class EmployeeService : IEmployeeService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(id, ct);
-            if (xpo == null) return null;
+            if (xpo == null || xpo.IsDeleted) return null;
 
             var domain = XpoEmployeeMapper.ToDomain(xpo);
 
@@ -36,8 +36,13 @@ public class EmployeeService : IEmployeeService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var xpo = await uow.Query<XpoEmployee>()
-                .FirstOrDefaultAsync(e => e.User != null && e.User.Id == userId, ct);
+            var user = await uow.GetObjectByKeyAsync<XpoUser>(userId, ct);
+            if (user == null || user.IsDeleted)
+                return null;
+
+            // Navigo la collection User.Employees: più robusto del confronto e.User.Id per il translator di XPO
+            user.Employees.Reload();
+            var xpo = user.Employees.FirstOrDefault(e => e.DeletedAt == null);
 
             if (xpo == null) return null;
 
@@ -51,7 +56,9 @@ public class EmployeeService : IEmployeeService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoEmployee>().ToListAsync(ct);
+            var list = await uow.Query<XpoEmployee>()
+                .Where(x => x.DeletedAt == null)
+                .ToListAsync(ct);
 
             return list
             .Select(xpo =>
@@ -69,16 +76,16 @@ public class EmployeeService : IEmployeeService
         return await _ctx.DoAsync(async uow =>
         {
             var project = await uow.GetObjectByKeyAsync<XpoProject>(projectId, ct);
-            if (project == null)
+            if (project == null || project.IsDeleted)
                 return null;
 
             var workLogs = await uow.Query<XpoWorkLog>()
-                .Where(w => w.IdProject == projectId)
+                .Where(w => w.DeletedAt == null && w.IdProject == projectId)
                 .ToListAsync(ct);
 
             var employees = workLogs
                 .Select(w => w.Employee)
-                .Where(e => e != null)
+                .Where(e => e != null && e.DeletedAt == null)
                 .Distinct()
                 .Select(xpo =>
                 {
@@ -96,7 +103,7 @@ public class EmployeeService : IEmployeeService
         return await _ctx.DoTranAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(dto.Id, ct);
-            if (xpo == null)
+            if (xpo == null || xpo.IsDeleted)
             {
                 await _logger.LogFailureAsync("Update", "Employee", dto.Id,
                     "Employee not found", ct);
@@ -122,14 +129,39 @@ public class EmployeeService : IEmployeeService
             var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(id, ct);
             if (xpo == null)
             {
-                await _logger.LogFailureAsync("Delete", "Employee", id,
+                await _logger.LogFailureAsync("SoftDelete", "Employee", id,
                     "Employee not found", ct);
                 throw new Exception("Employee not found");
             }
 
-            xpo.Delete();
+            if (!xpo.IsDeleted)
+            {
+                xpo.IsDeleted = true;
+                xpo.DeletedAt = DateTime.UtcNow;
+            }
 
-            await _logger.LogSuccessAsync(uow, "Delete", "Employee", id, ct);
+            await _logger.LogSuccessAsync(uow, "SoftDelete", "Employee", id, ct);
+
+            return true;
+        });
+    }
+
+    public async Task RestoreAsync(Guid id, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoEmployee>(id, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Restore", "Employee", id,
+                    "Employee not found", ct);
+                throw new Exception("Employee not found");
+            }
+
+            xpo.IsDeleted = false;
+            xpo.DeletedAt = null;
+
+            await _logger.LogSuccessAsync(uow, "Restore", "Employee", id, ct);
 
             return true;
         });

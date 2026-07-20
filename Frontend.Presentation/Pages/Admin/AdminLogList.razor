@@ -1,0 +1,125 @@
+@page "/admin/logs"
+@using Frontend.Domain.Contracts
+@using Frontend.Domain.Dtos.Log
+@inject ILogService LogService
+@inject IUserService UserService
+
+@inject NavigationManager Nav
+
+<div class="log-container">
+    <h2 class="title">Log di Sistema</h2>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (!IsAdmin)
+    {
+        <div class="error">Accesso negato: solo gli amministratori possono visualizzare questa pagina.</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error">@ErrorMessage</div>
+    }
+    else
+    {
+        <div class="filters">
+            <InputText class="filter-input" placeholder="Filtra per utente…" @bind-Value="FilterUser" />
+            <InputText class="filter-input" placeholder="Filtra per entità…" @bind-Value="FilterEntity" />
+            <button class="btn-filter" @onclick="ApplyFilters">Filtra</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Azione</th>
+                        <th>Entità</th>
+                        <th>Utente</th>
+                        <th>Esito</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var log in FilteredLogs)
+                    {
+                        <tr class="@GetRowClass(log)">
+                            <td>@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>@log.Action</td>
+                            <td>@($"{log.Entity} ({log.EntityId})")</td>
+                            <td>@log.UserEmail</td>
+                            <td>@(log.Success ? "OK" : "Errore")</td>
+                            <td>
+                                <button class="btn-details" @onclick="() => Details(log.Id)">
+                                    Dettagli
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<LogDto> Logs = new();
+    private List<LogDto> FilteredLogs = new();
+
+    private bool IsLoading = true;
+    private bool IsAdmin = false;
+    private string? ErrorMessage;
+
+    private string FilterUser = string.Empty;
+    private string FilterEntity = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await UserService.GetCurrentUserAsync();
+            IsAdmin = user?.Roles.Contains("Admin") ?? false;
+
+            if (!IsAdmin)
+            {
+                IsLoading = false;
+                return;
+            }
+
+            Logs = (await LogService.GetAllAsync())?.ToList() ?? new List<LogDto>();
+            FilteredLogs = Logs;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        FilteredLogs = Logs
+            .Where(l =>
+                (string.IsNullOrWhiteSpace(FilterUser) || 
+                (l.UserEmail?.Contains(FilterUser, 
+                StringComparison.OrdinalIgnoreCase) ?? false)) &&
+                (string.IsNullOrWhiteSpace(FilterEntity) || 
+                l.Entity.Contains(FilterEntity, 
+                StringComparison.OrdinalIgnoreCase))
+            )
+            .ToList();
+    }
+
+    private void Details(Guid id)
+    {
+        Nav.NavigateTo($"/admin/logs/details/{id}");
+    }
+
+    private string GetRowClass(LogDto log)
+        => log.Success ? "row-ok" : "row-error";
+}

@@ -24,7 +24,7 @@ public class CompanyService : ICompanyService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(id, ct);
-            if (xpo == null) return null;
+            if (xpo == null || xpo.IsDeleted) return null;
 
             var domain = XpoCompanyMapper.ToDomain(xpo);
 
@@ -36,7 +36,9 @@ public class CompanyService : ICompanyService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoCompany>().ToListAsync(ct);
+            var list = await uow.Query<XpoCompany>()
+                .Where(x => x.DeletedAt == null)
+                .ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -56,8 +58,7 @@ public class CompanyService : ICompanyService
         {
             var existing = await uow.Query<XpoCompany>()
                 .FirstOrDefaultAsync(w =>
-                    w.Name == dto.Name &&
-                    w.Email == dto.Email,
+                    w.DeletedAt == null && w.Name == dto.Name && w.Email == dto.Email,
                     ct);
 
             if (existing != null)
@@ -86,7 +87,7 @@ public class CompanyService : ICompanyService
         return await _ctx.DoTranAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(dto.Id, ct);
-            if (xpo == null)
+            if (xpo == null || xpo.IsDeleted)
             {
                 await _logger.LogFailureAsync("Update", "Company", dto.Id,
                     "Company not found", ct);
@@ -113,14 +114,39 @@ public class CompanyService : ICompanyService
             var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(id, ct);
             if (xpo == null)
             {
-                await _logger.LogFailureAsync("Delete", "Company", id,
+                await _logger.LogFailureAsync("SoftDelete", "Company", id,
                     "Company not found", ct);
                 throw new Exception("Company not found");
             }
 
-            xpo.Delete();
+            if (!xpo.IsDeleted)
+            {
+                xpo.IsDeleted = true;
+                xpo.DeletedAt = DateTime.UtcNow;
+            }
 
-            await _logger.LogSuccessAsync(uow, "Delete", "Company", id, ct);
+            await _logger.LogSuccessAsync(uow, "SoftDelete", "Company", id, ct);
+
+            return true;
+        });
+    }
+
+    public async Task RestoreAsync(Guid id, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoCompany>(id, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Restore", "Company", id,
+                    "Company not found", ct);
+                throw new Exception("Company not found");
+            }
+
+            xpo.IsDeleted = false;
+            xpo.DeletedAt = null;
+
+            await _logger.LogSuccessAsync(uow, "Restore", "Company", id, ct);
 
             return true;
         });

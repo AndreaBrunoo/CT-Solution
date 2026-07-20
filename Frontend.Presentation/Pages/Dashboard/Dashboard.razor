@@ -3,9 +3,15 @@
 
 @page "/Dashboard"
 @inject IDashboardService DashboardService
+@inject NavigationManager Nav
 
 <div class="dashboard-container">
-    <h2 class="dashboard-title">Dashboard</h2>
+    <div class="dashboard-header">
+        <h2 class="dashboard-title">Dashboard</h2>
+        <button class="btn-refresh" @onclick="Reload" disabled="@IsLoading" title="Ricarica">
+            ⟳
+        </button>
+    </div>
 
     @if (IsLoading)
     {
@@ -13,50 +19,63 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error">
+            <strong>Errore nel caricamento della dashboard.</strong>
+            <div class="error-detail">@ErrorMessage</div>
+            <div class="error-hint">
+                Verifica che l'API sia avviata su <code>http://localhost:5203</code> e che il token sia valido.
+            </div>
+        </div>
     }
     else if (Data is not null)
     {
         <div class="kpi-grid">
 
-            <div class="kpi-card">
+            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/worklog"))">
                 <div class="kpi-icon">⏱️</div>
                 <div class="kpi-value">@Data.MyHoursWeek</div>
                 <div class="kpi-label">Ore ultime 2 settimane</div>
-            </div>
+            </a>
 
-            <div class="kpi-card">
+            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/worklog"))">
                 <div class="kpi-icon">📝</div>
                 <div class="kpi-value">@Data.MyWorkLogsCount</div>
                 <div class="kpi-label">WorkLog totali</div>
-            </div>
+            </a>
 
-            <div class="kpi-card">
+            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/projects"))">
                 <div class="kpi-icon">📁</div>
                 <div class="kpi-value">@Data.ProjectsCount</div>
                 <div class="kpi-label">Progetti</div>
-            </div>
+            </a>
 
-            <div class="kpi-card">
+            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/companies"))">
                 <div class="kpi-icon">🏢</div>
                 <div class="kpi-value">@Data.CompaniesCount</div>
                 <div class="kpi-label">Aziende</div>
-            </div>
+            </a>
 
         </div>
 
         <h3 class="section-title">WorkLog recenti</h3>
 
         <div class="recent-list">
-            @foreach (var w in Data.RecentWorkLogs)
+            @if (Data.RecentWorkLogs is null || Data.RecentWorkLogs.Count == 0)
             {
-                <div class="recent-item">
-                    <div class="recent-left">
-                        <div class="recent-date">@w.Date.ToString("dd/MM/yyyy")</div>
-                        <div class="recent-desc">@w.Description</div>
+                <div class="recent-empty">Nessun WorkLog recente.</div>
+            }
+            else
+            {
+                @foreach (var w in Data.RecentWorkLogs)
+                {
+                    <div class="recent-item">
+                        <div class="recent-left">
+                            <div class="recent-date">@w.Date.ToString("dd/MM/yyyy")</div>
+                            <div class="recent-desc">@w.Description</div>
+                        </div>
+                        <div class="recent-hours">@w.HoursCounter h</div>
                     </div>
-                    <div class="recent-hours">@w.HoursCounter h</div>
-                </div>
+                }
             }
         </div>
     }
@@ -69,6 +88,18 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadAsync();
+    }
+
+    private async Task Reload()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
         try
         {
             Data = await DashboardService.GetKpiAsync();
@@ -82,4 +113,5 @@
             IsLoading = false;
         }
     }
+
 }

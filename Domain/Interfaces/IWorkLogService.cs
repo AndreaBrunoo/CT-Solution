@@ -11,4 +11,5 @@ public interface IWorkLogService
     Task<WorkLogDto?> UpdateAsync(UpdateWorkLogDto dto, CancellationToken ct = default);
     Task<WorkLogDto> ChangeStatusAsync(Guid worklogId, Guid newStatusId, CancellationToken ct);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task RestoreAsync(Guid id, CancellationToken ct = default);
 }

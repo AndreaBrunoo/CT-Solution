@@ -10,4 +10,5 @@ public interface IEmployeeService
     Task<IReadOnlyList<EmployeeDto>?> GetByProjectIdAsync(Guid projectId, CancellationToken ct = default);
     Task<EmployeeDto?> UpdateAsync(UpdateEmployeeDto dto, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task RestoreAsync(Guid id, CancellationToken ct = default);
 }

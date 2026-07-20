@@ -24,7 +24,7 @@ public class ProjectService : IProjectService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoProject>(id, ct);
-            if (xpo == null) return null;
+            if (xpo == null || xpo.IsDeleted) return null;
 
             var domain = XpoProjectMapper.ToDomain(xpo);
 
@@ -36,7 +36,9 @@ public class ProjectService : IProjectService
     {
         return await _ctx.DoAsync(async uow =>
         {
-            var list = await uow.Query<XpoProject>().ToListAsync(ct);
+            var list = await uow.Query<XpoProject>()
+                .Where(x => !x.IsDeleted)
+                .ToListAsync(ct);
 
             if (list == null) return null;
             return list
@@ -56,9 +58,10 @@ public class ProjectService : IProjectService
         {
             var existing = await uow.Query<XpoProject>()
                 .FirstOrDefaultAsync(w =>
+                    !w.IsDeleted &&
                     w.Name == dto.Name &&
                     w.HourlyRate == dto.HourlyRate &&
-                    w.Company.Id == dto.IdCompany,
+                    w.IdCompany == dto.IdCompany,
                     ct);
 
             if (existing != null)
@@ -89,7 +92,7 @@ public class ProjectService : IProjectService
         return await _ctx.DoTranAsync(async uow =>
         {
             var xpo = await uow.GetObjectByKeyAsync<XpoProject>(dto.Id, ct);
-            if (xpo == null)
+            if (xpo == null || xpo.IsDeleted)
             {
                 await _logger.LogFailureAsync("Update", "Project", dto.Id,
                     "Project not found", ct);
@@ -117,14 +120,39 @@ public class ProjectService : IProjectService
             var xpo = await uow.GetObjectByKeyAsync<XpoProject>(id, ct);
             if (xpo == null)
             {
-                await _logger.LogFailureAsync("Delete", "Project", id,
+                await _logger.LogFailureAsync("SoftDelete", "Project", id,
                     "Project not found", ct);
                 throw new Exception("Project not found");
             }
 
-            xpo.Delete();
+            if (!xpo.IsDeleted)
+            {
+                xpo.IsDeleted = true;
+                xpo.DeletedAt = DateTime.UtcNow;
+            }
 
-            await _logger.LogSuccessAsync(uow, "Delete", "Project", id, ct);
+            await _logger.LogSuccessAsync(uow, "SoftDelete", "Project", id, ct);
+
+            return true;
+        });
+    }
+
+    public async Task RestoreAsync(Guid id, CancellationToken ct)
+    {
+        await _ctx.DoTranAsync(async uow =>
+        {
+            var xpo = await uow.GetObjectByKeyAsync<XpoProject>(id, ct);
+            if (xpo == null)
+            {
+                await _logger.LogFailureAsync("Restore", "Project", id,
+                    "Project not found", ct);
+                throw new Exception("Project not found");
+            }
+
+            xpo.IsDeleted = false;
+            xpo.DeletedAt = null;
+
+            await _logger.LogSuccessAsync(uow, "Restore", "Project", id, ct);
 
             return true;
         });
