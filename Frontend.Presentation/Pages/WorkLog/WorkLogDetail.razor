@@ -1,8 +1,12 @@
 @using Frontend.Domain.Contracts;
 @using Frontend.Domain.Dtos.WorkLog;
+@using Frontend.Domain.Constants;
+@using Frontend.Application.Services;
+@using Frontend.Presentation.Helpers;
 
 @page "/worklog/details/{Id:guid}"
 @inject IWorkLogService WorkLogService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 @code {
@@ -14,6 +18,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav,
+                Roles.User, Roles.ProjectManager, Roles.Admin))
+            return;
+
         try
         {
             Data = await WorkLogService.GetByIdAsync(Id);
@@ -78,7 +86,9 @@
 
             <div class="actions">
                 <button class="btn-back" @onclick="GoBack">← Torna indietro</button>
-                <button class="btn-edit" @onclick="Edit">Modifica</button>
+                <AuthorizeRoles Roles="@(new[] { Roles.User, Roles.ProjectManager, Roles.Admin })">
+                    <button class="btn-edit" @onclick="Edit">Modifica</button>
+                </AuthorizeRoles>
             </div>
         </div>
     }

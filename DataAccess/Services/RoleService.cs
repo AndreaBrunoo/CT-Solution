@@ -27,7 +27,7 @@ public class RoleService : IRoleService
         return await _ctx.DoTranAsync(async uow =>
         {
             var existing = await uow.Query<XpoRole>()
-                .FirstOrDefaultAsync(r => !r.IsDeleted && r.Name == dto.Name, ct);
+                .FirstOrDefaultAsync(r => r.DeletedAt == null && r.Name == dto.Name, ct);
 
             if (existing != null)
             {
@@ -57,7 +57,7 @@ public class RoleService : IRoleService
         return await _ctx.DoAsync(async uow =>
         {
             var list = await uow.Query<XpoRole>()
-                .Where(x => !x.IsDeleted)
+                .Where(x => x.DeletedAt == null)
                 .ToListAsync(ct);
 
             return list

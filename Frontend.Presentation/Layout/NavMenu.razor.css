@@ -13,80 +13,51 @@
 }
 
 /* ============================================
-   Profile card (avatar 2x2 + nome + ruolo)
+   Brand (logo + email utente)
    ============================================ */
 
-.profile-card {
+.sidebar-brand {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    padding: 24px 18px 20px;
+    gap: 12px;
+    padding: 22px 18px 18px;
     background: var(--color-bg-surface);
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
-.profile-avatar-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 3px;
-    width: 108px;
-    height: 108px;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 8px 20px rgba(53, 99, 233, 0.20), 0 2px 4px rgba(15, 23, 42, 0.06);
-}
-
-.profile-avatar-tile {
-    display: flex;
+.brand-link {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 26px;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-    font-family: var(--font-sans);
+    border-radius: 12px;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.profile-avatar-tile:nth-child(1) {
-    background: linear-gradient(135deg, #4f6df5, #6a4cf0);
-}
-.profile-avatar-tile:nth-child(2) {
-    background: linear-gradient(135deg, #6a4cf0, #8b3fd9);
-}
-.profile-avatar-tile:nth-child(3) {
-    background: linear-gradient(135deg, #3563e9, #4f6df5);
-}
-.profile-avatar-tile:nth-child(4) {
-    background: linear-gradient(135deg, #8b3fd9, #6a4cf0);
+.brand-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(53, 99, 233, 0.18);
 }
 
-.profile-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 2px;
-    min-width: 0;
-    width: 100%;
+.brand-link.active {
+    /* Mantengo trasparente: la "pagina attiva" è gestita dal contenuto, non dal brand */
+    background: transparent;
+    color: inherit;
 }
 
-.profile-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.brand-logo {
+    display: block;
     max-width: 100%;
+    width: 160px;
+    height: auto;
 }
 
-.profile-role {
+.brand-email {
     font-size: 13px;
     font-weight: 500;
     color: var(--color-text-muted);
+    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -216,18 +187,13 @@
 }
 
 @media (max-width: 768px) {
-    .profile-card {
-        padding: 18px 10px;
+    .sidebar-brand {
+        padding: 16px 10px;
     }
-    .profile-avatar-grid {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
+    .brand-logo {
+        width: 120px;
     }
-    .profile-avatar-tile {
-        font-size: 12px;
-    }
-    .profile-info {
+    .brand-email {
         display: none;
     }
     .nav-label {
@@ -264,12 +230,8 @@
         padding: 22px 18px;
         gap: 14px;
     }
-    .profile-avatar-grid {
-        width: 120px;
-        height: 120px;
-    }
-    .profile-avatar-tile {
-        font-size: 28px;
+    .brand-logo {
+        width: 180px;
     }
     .nav-volume-btn {
         width: 40px;

@@ -1,9 +1,11 @@
 @page "/admin/logs"
 @using Frontend.Domain.Contracts
 @using Frontend.Domain.Dtos.Log
+@using Frontend.Domain.Constants
+@using Frontend.Application.Services
+@using Frontend.Presentation.Helpers
 @inject ILogService LogService
-@inject IUserService UserService
-
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="log-container">
@@ -12,10 +14,6 @@
     @if (IsLoading)
     {
         <div class="loading">Caricamento…</div>
-    }
-    else if (!IsAdmin)
-    {
-        <div class="error">Accesso negato: solo gli amministratori possono visualizzare questa pagina.</div>
     }
     else if (ErrorMessage is not null)
     {
@@ -69,7 +67,6 @@
     private List<LogDto> FilteredLogs = new();
 
     private bool IsLoading = true;
-    private bool IsAdmin = false;
     private string? ErrorMessage;
 
     private string FilterUser = string.Empty;
@@ -77,17 +74,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav, Roles.Admin))
+            return;
+
         try
         {
-            var user = await UserService.GetCurrentUserAsync();
-            IsAdmin = user?.Roles.Contains("Admin") ?? false;
-
-            if (!IsAdmin)
-            {
-                IsLoading = false;
-                return;
-            }
-
             Logs = (await LogService.GetAllAsync())?.ToList() ?? new List<LogDto>();
             FilteredLogs = Logs;
         }
@@ -105,11 +96,11 @@
     {
         FilteredLogs = Logs
             .Where(l =>
-                (string.IsNullOrWhiteSpace(FilterUser) || 
-                (l.UserEmail?.Contains(FilterUser, 
+                (string.IsNullOrWhiteSpace(FilterUser) ||
+                (l.UserEmail?.Contains(FilterUser,
                 StringComparison.OrdinalIgnoreCase) ?? false)) &&
-                (string.IsNullOrWhiteSpace(FilterEntity) || 
-                l.Entity.Contains(FilterEntity, 
+                (string.IsNullOrWhiteSpace(FilterEntity) ||
+                l.Entity.Contains(FilterEntity,
                 StringComparison.OrdinalIgnoreCase))
             )
             .ToList();

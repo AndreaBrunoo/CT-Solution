@@ -1,7 +1,11 @@
 @page "/categories"
 @using Frontend.Domain.Contracts
 @using Frontend.Domain.Dtos.Category
+@using Frontend.Domain.Constants
+@using Frontend.Application.Services
+@using Frontend.Presentation.Helpers
 @inject ICategoryService CategoryService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="category-container">
@@ -18,7 +22,9 @@
     else if (Categories is not null)
     {
         <div class="actions-top">
-            <button class="btn-create" @onclick="Create">+ Nuova Categoria</button>
+            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+                <button class="btn-create" @onclick="Create">+ Nuova Categoria</button>
+            </AuthorizeRoles>
         </div>
 
         <div class="table-wrapper">
@@ -55,6 +61,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav,
+                Roles.ProjectManager, Roles.Admin))
+            return;
+
         try
         {
             Categories = (await CategoryService.GetAllAsync())?.ToList() ?? new List<CategoryDto>();

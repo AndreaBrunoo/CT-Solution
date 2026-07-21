@@ -1,10 +1,12 @@
 @layout EmptyLayout
 @using Frontend.Domain.Dtos.User;
 @using Frontend.Domain.Contracts;
+@using Frontend.Application.Services;
 
 @page "/"
 @inject IUserService UserService
 @inject ITokenProvider TokenProvider
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="login-page">
@@ -78,6 +80,11 @@
             }
 
             await TokenProvider.SetTokenAsync(result.Token);
+
+            // Carico l'utente corrente per il guard di autorizzazione
+            var me = await UserService.GetCurrentUserAsync();
+            if (me is not null)
+                await CurrentUser.SetAsync(me);
 
             Nav.NavigateTo("/Dashboard");
         }

@@ -37,7 +37,7 @@ public class StatusService : IStatusService
         return await _ctx.DoAsync(async uow =>
         {
             var list = await uow.Query<XpoStatus>()
-                .Where(x => !x.IsDeleted)
+                .Where(x => x.DeletedAt == null)
                 .ToListAsync(ct);
 
             if (list == null) return null;
@@ -58,7 +58,7 @@ public class StatusService : IStatusService
         {
             var existing = await uow.Query<XpoStatus>()
                 .FirstOrDefaultAsync(w =>
-                    !w.IsDeleted && w.Name == dto.Name,
+                    w.DeletedAt == null && w.Name == dto.Name,
                     ct);
 
             if (existing != null)

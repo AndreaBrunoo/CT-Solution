@@ -37,7 +37,7 @@ public class ProjectService : IProjectService
         return await _ctx.DoAsync(async uow =>
         {
             var list = await uow.Query<XpoProject>()
-                .Where(x => !x.IsDeleted)
+                .Where(x => x.DeletedAt == null)
                 .ToListAsync(ct);
 
             if (list == null) return null;
@@ -58,7 +58,7 @@ public class ProjectService : IProjectService
         {
             var existing = await uow.Query<XpoProject>()
                 .FirstOrDefaultAsync(w =>
-                    !w.IsDeleted &&
+                    w.DeletedAt == null &&
                     w.Name == dto.Name &&
                     w.HourlyRate == dto.HourlyRate &&
                     w.IdCompany == dto.IdCompany,

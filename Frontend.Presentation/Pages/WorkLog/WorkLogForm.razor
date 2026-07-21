@@ -4,6 +4,9 @@
 @using Frontend.Domain.Dtos.Category;
 @using Frontend.Domain.Dtos.Status;
 @using Frontend.Domain.Dtos.Employee;
+@using Frontend.Domain.Constants;
+@using Frontend.Application.Services;
+@using Frontend.Presentation.Helpers;
 
 @page "/worklog/form"
 @page "/worklog/form/{Id:guid}"
@@ -13,6 +16,7 @@
 @inject ICategoryService CategoryService
 @inject IStatusService StatusService
 @inject IEmployeeService EmployeeService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="form-container">
@@ -117,6 +121,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav,
+                Roles.User, Roles.ProjectManager, Roles.Admin))
+            return;
+
         // Carica dropdown
         Projects = (await ProjectService.GetAllAsync())?.ToList() ?? new List<ProjectDto>();
         Categories = (await CategoryService.GetAllAsync())?.ToList() ?? new List<CategoryDto>();

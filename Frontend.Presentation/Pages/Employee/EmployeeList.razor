@@ -1,7 +1,11 @@
 @page "/employees"
 @using Frontend.Domain.Contracts
 @using Frontend.Domain.Dtos.Employee
+@using Frontend.Domain.Constants
+@using Frontend.Application.Services
+@using Frontend.Presentation.Helpers
 @inject IEmployeeService EmployeeService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="employee-container">
@@ -18,7 +22,9 @@
     else if (Employees is not null)
     {
         <div class="actions-top">
-            <button class="btn-create" @onclick="Create">+ Nuovo Dipendente</button>
+            <AuthorizeRoles Roles="@(new[] { Roles.Admin })">
+                <button class="btn-create" @onclick="Create">+ Nuovo Dipendente</button>
+            </AuthorizeRoles>
         </div>
 
         <div class="table-wrapper">
@@ -57,6 +63,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav, Roles.Admin))
+            return;
+
         try
         {
             Employees = (await EmployeeService.GetAllAsync())?.ToList() ?? new List<EmployeeDto>();

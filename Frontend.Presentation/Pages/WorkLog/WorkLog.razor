@@ -1,8 +1,12 @@
 @using Frontend.Domain.Contracts;
 @using Frontend.Domain.Dtos.WorkLog;
+@using Frontend.Domain.Constants;
+@using Frontend.Application.Services;
+@using Frontend.Presentation.Helpers;
 
 @page "/worklog"
 @inject IWorkLogService WorkLogService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="worklog-container">
@@ -18,6 +22,12 @@
     }
     else if (Data is not null)
     {
+        <div class="actions-top">
+            <AuthorizeRoles Roles="@(new[] { Roles.User, Roles.ProjectManager, Roles.Admin })">
+                <button class="btn-create" @onclick="CreateNew">+ Nuovo WorkLog</button>
+            </AuthorizeRoles>
+        </div>
+
         <div class="table-wrapper">
             <table class="worklog-table">
                 <thead>
@@ -60,6 +70,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav,
+                Roles.User, Roles.ProjectManager, Roles.Admin))
+            return;
+
         try
         {
             Data = await WorkLogService.GetMineAsync();
@@ -77,5 +91,10 @@
     private void GoToDetails(Guid id)
     {
         Nav.NavigateTo($"/worklog/details/{id}");
+    }
+
+    private void CreateNew()
+    {
+        Nav.NavigateTo("/worklog/form");
     }
 }

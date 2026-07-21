@@ -1,6 +1,8 @@
 @inherits LayoutComponentBase
 @using Frontend.Domain.Contracts
+@using Frontend.Application.Services
 @inject ITokenProvider TokenProvider
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="app-shell">
@@ -56,9 +58,17 @@
         };
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        // All'avvio (anche dopo F5), se c'è un token valido in localStorage
+        // proviamo a idratare l'utente corrente per non dover rifare il login.
+        if (!CurrentUser.IsAuthenticated)
+            await CurrentUser.TryHydrateAsync();
+    }
+
     private async Task Logout()
     {
-        await TokenProvider.RemoveTokenAsync();
+        await CurrentUser.ClearAsync();
         Nav.NavigateTo("/", forceLoad: true);
     }
 }

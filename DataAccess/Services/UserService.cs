@@ -119,7 +119,7 @@ public class UserService : IUserService
         return await _ctx.DoAsync(async uow =>
         {
             var list = await uow.Query<XpoUser>()
-                .Where(x => !x.IsDeleted)
+                .Where(x => x.DeletedAt == null)
                 .ToListAsync(ct);
 
             return list
@@ -149,7 +149,7 @@ public class UserService : IUserService
         return await _ctx.DoAsync(async uow =>
         {
             var xpo = await uow.Query<XpoUser>()
-                .FirstOrDefaultAsync(u => !u.IsDeleted && u.Email == email, ct);
+                .FirstOrDefaultAsync(u => u.DeletedAt == null && u.Email == email, ct);
 
             return xpo is null
                 ? null

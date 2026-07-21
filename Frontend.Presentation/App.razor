@@ -1,4 +1,12 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+@using Frontend.Application.Services
+@using Frontend.Presentation.Helpers
+@using Frontend.Domain.Contracts
+@inject CurrentUserService CurrentUser
+@inject NavigationManager Nav
+@inject ITokenProvider TokenProvider
+
+<Router AppAssembly="@typeof(App).Assembly"
+        OnNavigateAsync="OnNavigateAsync">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
     </Found>
@@ -6,3 +14,38 @@
         <p>Page not found</p>
     </NotFound>
 </Router>
+
+@code {
+    private bool _hydrated;
+
+    private async Task OnNavigateAsync(Microsoft.AspNetCore.Components.Routing.NavigationContext context)
+    {
+        // Primo passaggio: idrata se c'è un token in localStorage
+        if (!_hydrated)
+        {
+            _hydrated = true;
+            if (!CurrentUser.IsAuthenticated)
+                await CurrentUser.TryHydrateAsync();
+        }
+
+        // Se l'utente sta andando al login non serve nessun controllo
+        var path = context.Path.Trim('/').ToLowerInvariant();
+        if (string.IsNullOrEmpty(path) || path == "index.html")
+            return;
+
+        // Le rotte pubbliche (login) non richiedono auth
+        if (path == "" || path == "login")
+            return;
+
+        // Tutto il resto richiede login
+        if (!CurrentUser.IsAuthenticated)
+        {
+            // Tenta una re-idratazione se nel frattempo il token è comparso
+            var ok = await CurrentUser.TryHydrateAsync();
+            if (!ok)
+            {
+                Nav.NavigateTo("/", forceLoad: false);
+            }
+        }
+    }
+}

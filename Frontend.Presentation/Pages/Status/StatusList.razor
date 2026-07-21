@@ -1,7 +1,11 @@
 @page "/statuses"
 @using Frontend.Domain.Contracts
 @using Frontend.Domain.Dtos.Status
+@using Frontend.Domain.Constants
+@using Frontend.Application.Services
+@using Frontend.Presentation.Helpers
 @inject IStatusService StatusService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="status-container">
@@ -18,7 +22,9 @@
     else if (Statuses is not null)
     {
         <div class="actions-top">
-            <button class="btn-create" @onclick="Create">+ Nuovo Stato</button>
+            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+                <button class="btn-create" @onclick="Create">+ Nuovo Stato</button>
+            </AuthorizeRoles>
         </div>
 
         <div class="table-wrapper">
@@ -55,6 +61,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav,
+                Roles.ProjectManager, Roles.Admin))
+            return;
+
         try
         {
             Statuses = (await StatusService.GetAllAsync())?.ToList() ?? new List<StatusDto>();

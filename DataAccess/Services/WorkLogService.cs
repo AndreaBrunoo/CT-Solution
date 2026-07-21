@@ -56,7 +56,7 @@ public class WorkLogService : IWorkLogService
             //    dell'expression tree: genera un ExpressionAccessOperator non traducibile.
             var employeeId = employee.Id;
             var worklogs = await uow.Query<XpoWorkLog>()
-                .Where(w => !w.IsDeleted && w.IdEmployee == employeeId)
+                .Where(w => w.DeletedAt == null && w.IdEmployee == employeeId)
                 .ToListAsync(ct);
 
             // 4. Mappo anche le navigation
@@ -75,7 +75,7 @@ public class WorkLogService : IWorkLogService
         return await _ctx.DoAsync(async uow =>
         {
             var list = await uow.Query<XpoWorkLog>()
-                .Where(x => !x.IsDeleted)
+                .Where(x => x.DeletedAt == null)
                 .ToListAsync(ct);
 
             if (list == null) return null;
@@ -97,7 +97,7 @@ public class WorkLogService : IWorkLogService
             // Escludo i WL già soft-deleted dal check di unicità
             var existing = await uow.Query<XpoWorkLog>()
                 .FirstOrDefaultAsync(w =>
-                    !w.IsDeleted &&
+                    w.DeletedAt == null &&
                     w.Name == dto.Name &&
                     w.Date == dto.Date &&
                     w.IdEmployee == dto.IdEmployee,

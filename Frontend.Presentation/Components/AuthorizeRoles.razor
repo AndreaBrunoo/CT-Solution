@@ -1,0 +1,48 @@
+@using Frontend.Application.Services
+@using Frontend.Domain.Constants
+@inject CurrentUserService CurrentUser
+
+@*
+    Componente per il controllo autorizzazione lato UI (WASM).
+    Uso:
+        <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+            <button>...</button>
+        </AuthorizeRoles>
+    Se la pagina richiede login ma l'utente non è autenticato, il rendering
+    mostra Nothing di default (per evitare flash di UI). Comportamento
+    "richiedi login + redirect" gestito dal guard a livello di Router.
+*@
+
+@if (Allowed)
+{
+    @ChildContent
+}
+else if (NotAuthorized is not null)
+{
+    @NotAuthorized
+}
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment? NotAuthorized { get; set; }
+
+    /// <summary>Ruoli autorizzati a vedere il contenuto (OR logico: basta uno).</summary>
+    [Parameter] public string[]? Roles { get; set; }
+
+    /// <summary>Se true, l'utente deve essere loggato (indipendentemente dai ruoli).</summary>
+    [Parameter] public bool RequireAuthenticated { get; set; } = true;
+
+    private bool Allowed
+    {
+        get
+        {
+            if (RequireAuthenticated && !CurrentUser.IsAuthenticated)
+                return false;
+
+            if (Roles is null || Roles.Length == 0)
+                return CurrentUser.IsAuthenticated;
+
+            return CurrentUser.IsInAnyRole(Roles);
+        }
+    }
+}

@@ -16,7 +16,7 @@ public static class DatabaseSeeder
         await ctx.DoTranAsync(async uow =>
         {
             // RUOLI
-            var roles = new[] { "Admin", "Manager", "User" };
+            var roles = new[] { "Admin", "ProjectManager", "User" };
             foreach (var name in roles)
             {
                 if (!await uow.Query<XpoRole>().AnyAsync(r => r.Name == name, ct))

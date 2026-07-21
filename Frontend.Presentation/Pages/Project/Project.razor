@@ -1,7 +1,11 @@
 @page "/projects"
 @using Frontend.Domain.Contracts
 @using Frontend.Domain.Dtos.Project
+@using Frontend.Domain.Constants
+@using Frontend.Application.Services
+@using Frontend.Presentation.Helpers
 @inject IProjectService ProjectService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="project-container">
@@ -18,7 +22,9 @@
     else if (Projects is not null)
     {
         <div class="actions-top">
-            <button class="btn-create" @onclick="Create">+ Nuovo Progetto</button>
+            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+                <button class="btn-create" @onclick="Create">+ Nuovo Progetto</button>
+            </AuthorizeRoles>
         </div>
 
         <div class="table-wrapper">
@@ -59,6 +65,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav,
+                Roles.ProjectManager, Roles.Admin))
+            return;
+
         try
         {
             Projects = await ProjectService.GetAllAsync();

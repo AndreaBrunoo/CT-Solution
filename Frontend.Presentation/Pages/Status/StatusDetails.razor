@@ -1,7 +1,11 @@
 @page "/statuses/details/{Id:guid}"
 @using Frontend.Domain.Contracts
 @using Frontend.Domain.Dtos.Status
+@using Frontend.Domain.Constants
+@using Frontend.Application.Services
+@using Frontend.Presentation.Helpers
 @inject IStatusService StatusService
+@inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
 <div class="details-container">
@@ -31,7 +35,9 @@
 
             <div class="actions">
                 <button class="btn-back" @onclick="GoBack">← Indietro</button>
-                <button class="btn-edit" @onclick="Edit">Modifica</button>
+                <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+                    <button class="btn-edit" @onclick="Edit">Modifica</button>
+                </AuthorizeRoles>
             </div>
         </div>
     }
@@ -46,6 +52,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!await AuthGuard.EnsureRoleAsync(CurrentUser, Nav,
+                Roles.ProjectManager, Roles.Admin))
+            return;
+
         try
         {
             Status = await StatusService.GetByIdAsync(Id);
