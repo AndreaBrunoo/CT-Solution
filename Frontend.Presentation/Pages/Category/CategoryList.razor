@@ -8,8 +8,18 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="category-container">
-    <h2 class="title">Categorie</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Categorie</h2>
+            <div class="page-subtitle">Classificazione delle attività</div>
+        </div>
+        <div class="page-actions">
+            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+                <button class="btn btn-success" @onclick="Create">Nuova categoria</button>
+            </AuthorizeRoles>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,40 +27,38 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else if (Categories is not null)
     {
-        <div class="actions-top">
-            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
-                <button class="btn-create" @onclick="Create">+ Nuova Categoria</button>
-            </AuthorizeRoles>
-        </div>
-
-        <div class="table-wrapper">
-            <table class="category-table">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (CategoryDto c in Categories)
-                    {
+        @if (Categories.Count == 0)
+        {
+            <div class="empty-state">Nessuna categoria presente.</div>
+        }
+        else
+        {
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td>@c.Name</td>
-                            <td>
-                                <button class="btn-details" @onclick="() => Details(c.Id)">
-                                    Dettagli
-                                </button>
-                            </td>
+                            <th>Nome</th>
+                            <th class="col-actions"></th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach (CategoryDto c in Categories)
+                        {
+                            <tr>
+                                <td><strong>@c.Name</strong></td>
+                                <td class="col-actions">
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => Details(c.Id)">Dettagli</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
 </div>
 

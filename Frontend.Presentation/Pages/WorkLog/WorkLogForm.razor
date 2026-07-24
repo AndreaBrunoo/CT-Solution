@@ -19,8 +19,13 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="form-container">
-    <h2 class="title">@((Id.HasValue ? "Modifica WorkLog" : "Nuovo WorkLog"))</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">@(Id.HasValue ? "Modifica WorkLog" : "Nuovo WorkLog")</h2>
+            <div class="page-subtitle">@(Id.HasValue ? "Aggiorna le ore e i dettagli" : "Registra una nuova attività lavorativa")</div>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -28,83 +33,93 @@
     }
     else
     {
-        <EditForm Model="@Model" OnValidSubmit="@SaveAsync">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <div class="form-card">
+            <EditForm Model="@Model" OnValidSubmit="@SaveAsync">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="validation-summary" />
 
-            <div class="form-group">
-                <label>Nome</label>
-                <InputText class="form-control" @bind-Value="Model.Name" />
-            </div>
+                <div class="form-group">
+                    <label>Nome</label>
+                    <InputText class="form-control" @bind-Value="Model.Name" placeholder="Es. Refactor del modulo auth" />
+                    <ValidationMessage For="@(() => Model.Name)" />
+                </div>
 
-            <div class="form-group">
-                <label>Descrizione</label>
-                <InputText class="form-control" @bind-Value="Model.Description" />
-            </div>
+                <div class="form-group">
+                    <label>Descrizione</label>
+                    <InputText class="form-control" @bind-Value="Model.Description" placeholder="Dettagli sull'attività svolta" />
+                    <ValidationMessage For="@(() => Model.Description)" />
+                </div>
 
-            <div class="form-group">
-                <label>Ore</label>
-                <InputNumber class="form-control" @bind-Value="Model.HoursCounter" />
-            </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ore</label>
+                        <InputNumber class="form-control" @bind-Value="Model.HoursCounter" />
+                        <ValidationMessage For="@(() => Model.HoursCounter)" />
+                    </div>
 
-            <div class="form-group">
-                <label>Data</label>
-                <InputDate class="form-control" @bind-Value="Model.Date" />
-            </div>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <InputDate class="form-control" @bind-Value="Model.Date" />
+                        <ValidationMessage For="@(() => Model.Date)" />
+                    </div>
+                </div>
 
-            <!-- PROGETTO -->
-            <div class="form-group">
-                <label>Progetto</label>
-                <InputSelect class="form-control" @bind-Value="Model.IdProject">
-                    <option value="">-- Seleziona progetto --</option>
-                    @foreach (var p in Projects)
-                    {
-                        <option value="@p.Id">@p.Name</option>
-                    }
-                </InputSelect>
-            </div>
+                <div class="form-group">
+                    <label>Progetto</label>
+                    <InputSelect class="form-control" @bind-Value="Model.IdProject">
+                        <option value="">— Seleziona progetto —</option>
+                        @foreach (var p in Projects)
+                        {
+                            <option value="@p.Id">@p.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Model.IdProject)" />
+                </div>
 
-            <!-- CATEGORIA -->
-            <div class="form-group">
-                <label>Categoria</label>
-                <InputSelect class="form-control" @bind-Value="Model.IdCategory">
-                    <option value="">-- Seleziona categoria --</option>
-                    @foreach (var c in Categories)
-                    {
-                        <option value="@c.Id">@c.Name</option>
-                    }
-                </InputSelect>
-            </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <InputSelect class="form-control" @bind-Value="Model.IdCategory">
+                            <option value="">— Seleziona categoria —</option>
+                            @foreach (var c in Categories)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => Model.IdCategory)" />
+                    </div>
 
-            <!-- STATO -->
-            <div class="form-group">
-                <label>Stato</label>
-                <InputSelect class="form-control" @bind-Value="Model.IdStatus">
-                    <option value="">-- Seleziona stato --</option>
-                    @foreach (var s in Statuses)
-                    {
-                        <option value="@s.Id">@s.Name</option>
-                    }
-                </InputSelect>
-            </div>
+                    <div class="form-group">
+                        <label>Stato</label>
+                        <InputSelect class="form-control" @bind-Value="Model.IdStatus">
+                            <option value="">— Seleziona stato —</option>
+                            @foreach (var s in Statuses)
+                            {
+                                <option value="@s.Id">@s.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => Model.IdStatus)" />
+                    </div>
+                </div>
 
-            <!-- EMPLOYEE (se serve) -->
-            <div class="form-group">
-                <label>Dipendente</label>
-                <InputSelect class="form-control" @bind-Value="Model.IdEmployee">
-                    <option value="">-- Seleziona dipendente --</option>
-                    @foreach (var e in Employees)
-                    {
-                        <option value="@e.Id">@e.Email</option>
-                    }
-                </InputSelect>
-            </div>
+                <div class="form-group">
+                    <label>Dipendente</label>
+                    <InputSelect class="form-control" @bind-Value="Model.IdEmployee">
+                        <option value="">— Seleziona dipendente —</option>
+                        @foreach (var e in Employees)
+                        {
+                            <option value="@e.Id">@e.Email</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Model.IdEmployee)" />
+                </div>
 
-            <div class="actions">
-                <button class="btn-save" type="submit">Salva</button>
-                <button class="btn-back" @onclick="GoBack">Annulla</button>
-            </div>
-        </EditForm>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">@(Id.HasValue ? "Salva modifiche" : "Crea WorkLog")</button>
+                    <button class="btn btn-secondary" type="button" @onclick="GoBack">Annulla</button>
+                </div>
+            </EditForm>
+        </div>
     }
 </div>
 

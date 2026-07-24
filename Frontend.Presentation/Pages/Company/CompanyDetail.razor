@@ -8,8 +8,13 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="details-container">
-    <h2 class="title">Dettaglio Azienda</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Dettaglio azienda</h2>
+            <div class="page-subtitle">Informazioni sull'azienda selezionata</div>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,35 +22,28 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else if (Company is not null)
     {
         <div class="details-card">
-
             <div class="details-row">
-                <span class="label">Nome:</span>
+                <span class="label">Nome</span>
                 <span class="value">@Company.Name</span>
             </div>
-
             <div class="details-row">
-                <span class="label">Email:</span>
+                <span class="label">Email</span>
                 <span class="value">@Company.Email</span>
             </div>
-
             <div class="details-row">
-                <span class="label">Tariffa oraria:</span>
+                <span class="label">ID</span>
+                <span class="value"><code>@Company.Id</code></span>
             </div>
 
-            <div class="details-row">
-                <span class="label">ID:</span>
-                <span class="value">@Company.Id</span>
-            </div>
-
-            <div class="actions">
-                <button class="btn-back" @onclick="GoBack">← Indietro</button>
+            <div class="form-actions">
+                <button class="btn btn-secondary" @onclick="GoBack">Indietro</button>
                 <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
-                    <button class="btn-edit" @onclick="Edit">Modifica</button>
+                    <button class="btn btn-primary" @onclick="Edit">Modifica</button>
                 </AuthorizeRoles>
             </div>
         </div>

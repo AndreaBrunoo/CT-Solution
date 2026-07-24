@@ -11,8 +11,13 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="form-container">
-    <h2 class="title">@((Id.HasValue ? "Modifica Dipendente" : "Nuovo Dipendente"))</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">@(Id.HasValue ? "Modifica dipendente" : "Nuovo dipendente")</h2>
+            <div class="page-subtitle">@(Id.HasValue ? "Aggiorna i dati del dipendente" : "Aggiungi un nuovo dipendente al sistema")</div>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -20,25 +25,29 @@
     }
     else
     {
-        <EditForm Model="@Model" OnValidSubmit="@SaveAsync">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <div class="form-card">
+            <EditForm Model="@Model" OnValidSubmit="@SaveAsync">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="validation-summary" />
 
-            <div class="form-group">
-                <label>UserName</label>
-                <InputText class="form-control" @bind-Value="Model.UserName" />
-            </div>
+                <div class="form-group">
+                    <label>UserName</label>
+                    <InputText class="form-control" @bind-Value="Model.UserName" placeholder="es. mario.rossi" />
+                    <ValidationMessage For="@(() => Model.UserName)" />
+                </div>
 
-            <div class="form-group">
-                <label>Email</label>
-                <InputText class="form-control" @bind-Value="Model.Email" />
-            </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <InputText class="form-control" type="email" @bind-Value="Model.Email" placeholder="mario.rossi@azienda.it" />
+                    <ValidationMessage For="@(() => Model.Email)" />
+                </div>
 
-            <div class="actions">
-                <button class="btn-save" type="submit">Salva</button>
-                <button class="btn-back" @onclick="GoBack">Annulla</button>
-            </div>
-        </EditForm>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">@(Id.HasValue ? "Salva modifiche" : "Crea dipendente")</button>
+                    <button class="btn btn-secondary" type="button" @onclick="GoBack">Annulla</button>
+                </div>
+            </EditForm>
+        </div>
     }
 </div>
 

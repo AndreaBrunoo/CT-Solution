@@ -9,6 +9,60 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Dettaglio WorkLog</h2>
+            <div class="page-subtitle">Informazioni sull'attività selezionata</div>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="loading">Caricamento…</div>
+    }
+    else if (ErrorMessage is not null)
+    {
+        <div class="error-box">@ErrorMessage</div>
+    }
+    else if (Data is not null)
+    {
+        <div class="details-card">
+            <div class="details-row">
+                <span class="label">Data</span>
+                <span class="value">@Data.Date.ToString("dd/MM/yyyy")</span>
+            </div>
+            <div class="details-row">
+                <span class="label">Progetto</span>
+                <span class="value">@Data.ProjectName</span>
+            </div>
+            <div class="details-row">
+                <span class="label">Categoria</span>
+                <span class="value">@Data.CategoryName</span>
+            </div>
+            <div class="details-row">
+                <span class="label">Ore</span>
+                <span class="value"><span class="badge badge-brand">@Data.HoursCounter h</span></span>
+            </div>
+            <div class="details-row">
+                <span class="label">Stato</span>
+                <span class="value"><span class="badge">@Data.StatusName</span></span>
+            </div>
+            <div class="details-row">
+                <span class="label">Note</span>
+                <span class="value">@Data.Description</span>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" @onclick="GoBack">Indietro</button>
+                <AuthorizeRoles Roles="@(new[] { Roles.User, Roles.ProjectManager, Roles.Admin })">
+                    <button class="btn btn-primary" @onclick="Edit">Modifica</button>
+                </AuthorizeRoles>
+            </div>
+        </div>
+    }
+</div>
+
 @code {
     [Parameter] public Guid Id { get; set; }
 
@@ -39,57 +93,3 @@
     private void GoBack() => Nav.NavigateTo("/worklog");
     private void Edit() => Nav.NavigateTo($"/worklog/form/{Id}");
 }
-<div class="details-container">
-    <h2 class="title">Dettagli WorkLog</h2>
-
-    @if (IsLoading)
-    {
-        <div class="loading">Caricamento…</div>
-    }
-    else if (ErrorMessage is not null)
-    {
-        <div class="error">@ErrorMessage</div>
-    }
-    else if (Data is not null)
-    {
-        <div class="details-card">
-
-            <div class="details-row">
-                <span class="label">Data:</span>
-                <span class="value">@Data.Date.ToString("dd/MM/yyyy")</span>
-            </div>
-
-            <div class="details-row">
-                <span class="label">Progetto:</span>
-                <span class="value">@Data.ProjectName</span>
-            </div>
-
-            <div class="details-row">
-                <span class="label">Categoria:</span>
-                <span class="value">@Data.CategoryName</span>
-            </div>
-
-            <div class="details-row">
-                <span class="label">Ore:</span>
-                <span class="value">@Data.HoursCounter h</span>
-            </div>
-
-            <div class="details-row">
-                <span class="label">Stato:</span>
-                <span class="value status">@Data.StatusName</span>
-            </div>
-
-            <div class="details-row">
-                <span class="label">Note:</span>
-                <span class="value">@Data.Description</span>
-            </div>
-
-            <div class="actions">
-                <button class="btn-back" @onclick="GoBack">← Torna indietro</button>
-                <AuthorizeRoles Roles="@(new[] { Roles.User, Roles.ProjectManager, Roles.Admin })">
-                    <button class="btn-edit" @onclick="Edit">Modifica</button>
-                </AuthorizeRoles>
-            </div>
-        </div>
-    }
-</div>

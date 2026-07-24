@@ -19,7 +19,7 @@
 
         <EditForm Model="@model" OnValidSubmit="@DoLogin" class="login-form">
             <DataAnnotationsValidator />
-            <ValidationSummary />
+            <ValidationSummary class="validation-summary" />
 
             <div class="form-group">
                 <label for="email">Email</label>

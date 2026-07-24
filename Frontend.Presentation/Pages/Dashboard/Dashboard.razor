@@ -5,21 +5,24 @@
 @inject IDashboardService DashboardService
 @inject NavigationManager Nav
 
-<div class="dashboard-container">
-    <div class="dashboard-header">
-        <h2 class="dashboard-title">Dashboard</h2>
-        <button class="btn-refresh" @onclick="Reload" disabled="@IsLoading" title="Ricarica">
-            ⟳
-        </button>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Dashboard</h2>
+            <div class="page-subtitle">Panoramica delle tue attività recenti</div>
+        </div>
+        <div class="page-actions">
+            <button class="btn btn-secondary" @onclick="Reload" disabled="@IsLoading">Aggiorna</button>
+        </div>
     </div>
 
     @if (IsLoading)
     {
-        <div class="loading">Caricamento…</div>
+        <div class="loading">Caricamento dati…</div>
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">
+        <div class="error-box">
             <strong>Errore nel caricamento della dashboard.</strong>
             <div class="error-detail">@ErrorMessage</div>
             <div class="error-hint">
@@ -30,53 +33,60 @@
     else if (Data is not null)
     {
         <div class="kpi-grid">
-
-            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/worklog"))">
-                <div class="kpi-icon">⏱️</div>
+            <button class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/worklog"))">
                 <div class="kpi-value">@Data.MyHoursWeek</div>
                 <div class="kpi-label">Ore ultime 2 settimane</div>
-            </a>
+            </button>
 
-            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/worklog"))">
-                <div class="kpi-icon">📝</div>
+            <button class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/worklog"))">
                 <div class="kpi-value">@Data.MyWorkLogsCount</div>
                 <div class="kpi-label">WorkLog totali</div>
-            </a>
+            </button>
 
-            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/projects"))">
-                <div class="kpi-icon">📁</div>
+            <button class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/projects"))">
                 <div class="kpi-value">@Data.ProjectsCount</div>
                 <div class="kpi-label">Progetti</div>
-            </a>
+            </button>
 
-            <a class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/companies"))">
-                <div class="kpi-icon">🏢</div>
+            <button class="kpi-card kpi-clickable" @onclick="@(() => Nav.NavigateTo("/companies"))">
                 <div class="kpi-value">@Data.CompaniesCount</div>
                 <div class="kpi-label">Aziende</div>
-            </a>
-
+            </button>
         </div>
 
-        <h3 class="section-title">WorkLog recenti</h3>
+        <div class="page-section">
+            <h3 class="section-title">WorkLog recenti</h3>
 
-        <div class="recent-list">
-            @if (Data.RecentWorkLogs is null || Data.RecentWorkLogs.Count == 0)
-            {
-                <div class="recent-empty">Nessun WorkLog recente.</div>
-            }
-            else
-            {
-                @foreach (var w in Data.RecentWorkLogs)
+            <div class="data-card">
+                @if (Data.RecentWorkLogs is null || Data.RecentWorkLogs.Count == 0)
                 {
-                    <div class="recent-item">
-                        <div class="recent-left">
-                            <div class="recent-date">@w.Date.ToString("dd/MM/yyyy")</div>
-                            <div class="recent-desc">@w.Description</div>
-                        </div>
-                        <div class="recent-hours">@w.HoursCounter h</div>
-                    </div>
+                    <div class="empty-state">Nessun WorkLog recente. Inizia creandone uno dalla sezione WorkLog.</div>
                 }
-            }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrizione</th>
+                                <th class="col-actions">Ore</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var w in Data.RecentWorkLogs)
+                            {
+                                <tr>
+                                    <td>@w.Date.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-muted">@w.Description</td>
+                                    <td class="col-actions">
+                                        <span class="badge badge-brand">@w.HoursCounter h</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
         </div>
     }
 </div>
@@ -113,5 +123,4 @@
             IsLoading = false;
         }
     }
-
 }

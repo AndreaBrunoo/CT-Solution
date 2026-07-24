@@ -8,8 +8,18 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="company-container">
-    <h2 class="title">Aziende</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Aziende</h2>
+            <div class="page-subtitle">Anagrafe delle aziende clienti</div>
+        </div>
+        <div class="page-actions">
+            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+                <button class="btn btn-success" @onclick="Create">Nuova azienda</button>
+            </AuthorizeRoles>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,43 +27,40 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else if (Companies is not null)
     {
-        <div class="actions-top">
-            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
-                <button class="btn-create" @onclick="Create">+ Nuova Azienda</button>
-            </AuthorizeRoles>
-        </div>
-
-        <div class="table-wrapper">
-            <table class="company-table">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Tariffa oraria</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (var c in Companies)
-                    {
+        @if (Companies.Count == 0)
+        {
+            <div class="empty-state">Nessuna azienda registrata. Aggiungine una per iniziare.</div>
+        }
+        else
+        {
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td>@c.Name</td>
-                            <td>@c.Email</td>
-                            <td>
-                                <button class="btn-details" @onclick="() => Details(c.Id)">
-                                    Dettagli
-                                </button>
-                            </td>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th class="col-actions"></th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Companies)
+                        {
+                            <tr>
+                                <td><strong>@c.Name</strong></td>
+                                <td>@c.Email</td>
+                                <td class="col-actions">
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => Details(c.Id)">Dettagli</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
 </div>
 

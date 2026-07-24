@@ -8,8 +8,13 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="log-container">
-    <h2 class="title">Log di Sistema</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Log di sistema</h2>
+            <div class="page-subtitle">Tutte le operazioni registrate sull'applicazione</div>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,48 +22,62 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else
     {
         <div class="filters">
-            <InputText class="filter-input" placeholder="Filtra per utente…" @bind-Value="FilterUser" />
-            <InputText class="filter-input" placeholder="Filtra per entità…" @bind-Value="FilterEntity" />
-            <button class="btn-filter" @onclick="ApplyFilters">Filtra</button>
+            <input class="form-control" placeholder="Filtra per utente…" @bind="FilterUser" @bind:event="oninput" />
+            <input class="form-control" placeholder="Filtra per entità…" @bind="FilterEntity" @bind:event="oninput" />
+            <button class="btn btn-primary" @onclick="ApplyFilters">Filtra</button>
+            <button class="btn btn-ghost" @onclick="ResetFilters">Reset</button>
         </div>
 
-        <div class="table-wrapper">
-            <table class="log-table">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Azione</th>
-                        <th>Entità</th>
-                        <th>Utente</th>
-                        <th>Esito</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (var log in FilteredLogs)
-                    {
-                        <tr class="@GetRowClass(log)">
-                            <td>@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                            <td>@log.Action</td>
-                            <td>@($"{log.Entity} ({log.EntityId})")</td>
-                            <td>@log.UserEmail</td>
-                            <td>@(log.Success ? "OK" : "Errore")</td>
-                            <td>
-                                <button class="btn-details" @onclick="() => Details(log.Id)">
-                                    Dettagli
-                                </button>
-                            </td>
+        @if (FilteredLogs.Count == 0)
+        {
+            <div class="empty-state">Nessun log corrisponde ai filtri impostati.</div>
+        }
+        else
+        {
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Azione</th>
+                            <th>Entità</th>
+                            <th>Utente</th>
+                            <th>Esito</th>
+                            <th class="col-actions"></th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in FilteredLogs)
+                        {
+                            <tr class="@(log.Success ? "row-ok" : "row-error")">
+                                <td><strong>@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</strong></td>
+                                <td>@log.Action</td>
+                                <td>@($"{log.Entity} ({log.EntityId})")</td>
+                                <td>@log.UserEmail</td>
+                                <td>
+                                    @if (log.Success)
+                                    {
+                                        <span class="badge badge-success">OK</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Errore</span>
+                                    }
+                                </td>
+                                <td class="col-actions">
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => Details(log.Id)">Dettagli</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
 </div>
 
@@ -106,11 +125,15 @@
             .ToList();
     }
 
+    private void ResetFilters()
+    {
+        FilterUser = string.Empty;
+        FilterEntity = string.Empty;
+        FilteredLogs = Logs;
+    }
+
     private void Details(Guid id)
     {
         Nav.NavigateTo($"/admin/logs/details/{id}");
     }
-
-    private string GetRowClass(LogDto log)
-        => log.Success ? "row-ok" : "row-error";
 }

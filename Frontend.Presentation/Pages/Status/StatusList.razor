@@ -8,8 +8,18 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="status-container">
-    <h2 class="title">Stati</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Stati</h2>
+            <div class="page-subtitle">Stati di avanzamento dei WorkLog</div>
+        </div>
+        <div class="page-actions">
+            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
+                <button class="btn btn-success" @onclick="Create">Nuovo stato</button>
+            </AuthorizeRoles>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,40 +27,38 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else if (Statuses is not null)
     {
-        <div class="actions-top">
-            <AuthorizeRoles Roles="@(new[] { Roles.ProjectManager, Roles.Admin })">
-                <button class="btn-create" @onclick="Create">+ Nuovo Stato</button>
-            </AuthorizeRoles>
-        </div>
-
-        <div class="table-wrapper">
-            <table class="status-table">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (var s in Statuses)
-                    {
+        @if (Statuses.Count == 0)
+        {
+            <div class="empty-state">Nessuno stato definito.</div>
+        }
+        else
+        {
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td>@s.Name</td>
-                            <td>
-                                <button class="btn-details" @onclick="() => Details(s.Id)">
-                                    Dettagli
-                                </button>
-                            </td>
+                            <th>Nome</th>
+                            <th class="col-actions"></th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Statuses)
+                        {
+                            <tr>
+                                <td><strong>@s.Name</strong></td>
+                                <td class="col-actions">
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => Details(s.Id)">Dettagli</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
 </div>
 

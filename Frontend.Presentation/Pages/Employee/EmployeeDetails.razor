@@ -8,8 +8,13 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="details-container">
-    <h2 class="title">Dettaglio Dipendente</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Dettaglio dipendente</h2>
+            <div class="page-subtitle">Informazioni sul dipendente selezionato</div>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,31 +22,28 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else if (Employee is not null)
     {
         <div class="details-card">
-
             <div class="details-row">
-                <span class="label">UserName:</span>
+                <span class="label">UserName</span>
                 <span class="value">@Employee.UserName</span>
             </div>
-
             <div class="details-row">
-                <span class="label">Email:</span>
+                <span class="label">Email</span>
                 <span class="value">@Employee.Email</span>
             </div>
-
             <div class="details-row">
-                <span class="label">ID:</span>
-                <span class="value">@Employee.Id</span>
+                <span class="label">ID</span>
+                <span class="value"><code>@Employee.Id</code></span>
             </div>
 
-            <div class="actions">
-                <button class="btn-back" @onclick="GoBack">← Indietro</button>
+            <div class="form-actions">
+                <button class="btn btn-secondary" @onclick="GoBack">Indietro</button>
                 <AuthorizeRoles Roles="@(new[] { Roles.Admin })">
-                    <button class="btn-edit" @onclick="Edit">Modifica</button>
+                    <button class="btn btn-primary" @onclick="Edit">Modifica</button>
                 </AuthorizeRoles>
             </div>
         </div>

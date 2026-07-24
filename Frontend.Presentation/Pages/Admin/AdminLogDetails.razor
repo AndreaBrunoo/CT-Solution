@@ -8,8 +8,13 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="details-container">
-    <h2 class="title">Dettaglio Log</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Dettaglio log</h2>
+            <div class="page-subtitle">Informazioni complete sull'evento registrato</div>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,52 +22,55 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else if (Log is not null)
     {
         <div class="details-card @(Log.Success ? "card-ok" : "card-error")">
-
             <div class="details-row">
-                <span class="label">Timestamp:</span>
+                <span class="label">Timestamp</span>
                 <span class="value">@Log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</span>
             </div>
-
             <div class="details-row">
-                <span class="label">Azione:</span>
+                <span class="label">Azione</span>
                 <span class="value">@Log.Action</span>
             </div>
-
             <div class="details-row">
-                <span class="label">Entità:</span>
+                <span class="label">Entità</span>
                 <span class="value">@Log.Entity</span>
             </div>
-
             <div class="details-row">
-                <span class="label">ID Entità:</span>
-                <span class="value">@Log.EntityId</span>
+                <span class="label">ID Entità</span>
+                <span class="value"><code>@Log.EntityId</code></span>
             </div>
-
             <div class="details-row">
-                <span class="label">Utente:</span>
+                <span class="label">Utente</span>
                 <span class="value">@Log.UserEmail</span>
             </div>
-
             <div class="details-row">
-                <span class="label">Esito:</span>
-                <span class="value">@((Log.Success ? "OK" : "Errore"))</span>
+                <span class="label">Esito</span>
+                <span class="value">
+                    @if (Log.Success)
+                    {
+                        <span class="badge badge-success">OK</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-danger">Errore</span>
+                    }
+                </span>
             </div>
 
             @if (!Log.Success && Log.ErrorMessage is not null)
             {
                 <div class="details-row">
-                    <span class="label">Errore:</span>
-                    <span class="value error-text">@Log.ErrorMessage</span>
+                    <span class="label">Errore</span>
+                    <span class="value" style="color: var(--color-danger); font-weight: 600;">@Log.ErrorMessage</span>
                 </div>
             }
 
-            <div class="actions">
-                <button class="btn-back" @onclick="GoBack">← Indietro</button>
+            <div class="form-actions">
+                <button class="btn btn-secondary" @onclick="GoBack">Indietro</button>
             </div>
         </div>
     }

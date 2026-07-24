@@ -8,8 +8,18 @@
 @inject CurrentUserService CurrentUser
 @inject NavigationManager Nav
 
-<div class="employee-container">
-    <h2 class="title">Dipendenti</h2>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Dipendenti</h2>
+            <div class="page-subtitle">Anagrafe dei dipendenti con accesso al sistema</div>
+        </div>
+        <div class="page-actions">
+            <AuthorizeRoles Roles="@(new[] { Roles.Admin })">
+                <button class="btn btn-success" @onclick="Create">Nuovo dipendente</button>
+            </AuthorizeRoles>
+        </div>
+    </div>
 
     @if (IsLoading)
     {
@@ -17,42 +27,40 @@
     }
     else if (ErrorMessage is not null)
     {
-        <div class="error">@ErrorMessage</div>
+        <div class="error-box">@ErrorMessage</div>
     }
     else if (Employees is not null)
     {
-        <div class="actions-top">
-            <AuthorizeRoles Roles="@(new[] { Roles.Admin })">
-                <button class="btn-create" @onclick="Create">+ Nuovo Dipendente</button>
-            </AuthorizeRoles>
-        </div>
-
-        <div class="table-wrapper">
-            <table class="employee-table">
-                <thead>
-                    <tr>
-                        <th>UserName</th>
-                        <th>Email</th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (var e in Employees)
-                    {
+        @if (Employees.Count == 0)
+        {
+            <div class="empty-state">Nessun dipendente registrato.</div>
+        }
+        else
+        {
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td>@e.UserName</td>
-                            <td>@e.Email</td>
-                            <td>
-                                <button class="btn-details" @onclick="() => Details(e.Id)">
-                                    Dettagli
-                                </button>
-                            </td>
+                            <th>UserName</th>
+                            <th>Email</th>
+                            <th class="col-actions"></th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Employees)
+                        {
+                            <tr>
+                                <td><strong>@e.UserName</strong></td>
+                                <td>@e.Email</td>
+                                <td class="col-actions">
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => Details(e.Id)">Dettagli</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
 </div>
 
